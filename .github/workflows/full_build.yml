@@ -1,0 +1,40 @@
+name: Full Build
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Package
+        shell: bash
+        run: |
+          version=${GITHUB_REF#refs/*/v}
+          dotnet pack --output output --configuration Release -p:version="$version" src/Infrastructure.Styles.Analyzer/Infrastructure.Styles.Analyzer.csproj
+
+      - name: Publish
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "output/*.nupkg"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
