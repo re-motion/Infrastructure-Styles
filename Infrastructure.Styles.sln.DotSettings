@@ -17,4 +17,5 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with re-motion; if not, see http://www.gnu.org/licenses.</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/PredefinedNamingRules/=TypesAndNamespaces/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="" Suffix="" Style="AaBb"&gt;&lt;ExtraRule Prefix="RMSYN" Suffix="" Style="AaBb" /&gt;&lt;/Policy&gt;</s:String>
 </wpf:ResourceDictionary>
