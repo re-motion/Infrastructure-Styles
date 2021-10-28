@@ -60,12 +60,16 @@ namespace Infrastructure.Styles.Analyzer
       if (syntaxRoot is null)
         return context.Document;
 
-
       var syntaxToken = syntaxRoot.FindToken(diagnosticSpan.Start);
       var newLeadingTrivia = RemoveWhitespacesFromEmptyLines(
         syntaxToken.LeadingTrivia,
         syntaxToken.IsKind(SyntaxKind.EndOfFileToken));
-      var newSyntaxToken = syntaxToken.WithLeadingTrivia(newLeadingTrivia);
+      var newTrailingTrivia = RemoveWhitespacesFromEmptyLines(
+        syntaxToken.TrailingTrivia,
+        syntaxToken.FullSpan.End == syntaxRoot.FullSpan.Length);
+      var newSyntaxToken = syntaxToken
+        .WithLeadingTrivia(newLeadingTrivia)
+        .WithTrailingTrivia(newTrailingTrivia);
 
       var newSyntaxRoot = syntaxRoot.ReplaceToken(syntaxToken, newSyntaxToken);
       return context.Document.WithSyntaxRoot(newSyntaxRoot);

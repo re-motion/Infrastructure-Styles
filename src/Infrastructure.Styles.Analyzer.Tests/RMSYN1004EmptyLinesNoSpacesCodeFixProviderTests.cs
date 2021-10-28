@@ -135,5 +135,61 @@ namespace N
         before,
         after);
     }
+
+    [Test]
+    public void FixDiagnostics_ForTrailingSpaces()
+    {
+      var before = @"
+namespace N↓ 
+{
+    class C↓  
+    {↓ 
+    }
+}↓ ";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+    }
+}";
+
+      RoslynAssert.FixAll(
+        Analyzer,
+        Fix,
+        before,
+        after);
+    }
+
+    [Test]
+    public void FixDiagnostics_ForMultipleFollowingLines()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+↓    
+↓    
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+
+
+    }
+}";
+
+      RoslynAssert.FixAll(
+        Analyzer,
+        Fix,
+        before,
+        after);
+    }
   }
 }

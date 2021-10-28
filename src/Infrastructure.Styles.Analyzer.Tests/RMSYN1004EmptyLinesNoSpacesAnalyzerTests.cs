@@ -107,5 +107,64 @@ namespace N
         Analyzer,
         code);
     }
+
+    [Test]
+    public void ReportDiagnostics_ForTrailingSpaces()
+    {
+      var code = @"
+namespace N↓ 
+{
+    class C↓  
+    {↓ 
+↓    
+↓    
+    }
+}↓ ";
+
+      RoslynAssert.Diagnostics(
+        Analyzer,
+        code);
+    }
+
+    [Test]
+    public void ReportDiagnostics_ForMultipleFollowingLines()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+↓    
+↓    
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+        Analyzer,
+        code);
+    }
+
+    [Test]
+    public void DoNotReportDiagnostics_IgnoreOtherWhitespaceIssues()
+    {
+      var code = @"
+namespace   N
+{
+    class    C
+    {
+      // test
+      private
+         int     a   ;
+
+      /* xD */
+      static   void   T ( )    {
+        }
+    }
+}";
+
+      RoslynAssert.Valid(
+        Analyzer,
+        code);
+    }
   }
 }
