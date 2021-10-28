@@ -53,7 +53,7 @@ namespace N
     }
 
     [Test]
-    public void ReportDiagnostic_InFirstLine()
+    public void FixDiagnostic_InFirstLine()
     {
       var before = @"↓    
 namespace N
@@ -79,7 +79,7 @@ namespace N
     }
 
     [Test]
-    public void ReportDiagnostic_InLastLine()
+    public void FixDiagnostic_InLastLine()
     {
       var before = @"
 namespace N
@@ -107,7 +107,7 @@ namespace N
     }
 
     [Test]
-    public void ReportDiagnostic_IfOtherTriviaIsInOtherLine()
+    public void FixDiagnostic_IfOtherTriviaIsInOtherLine()
     {
       var before = @"
 namespace N

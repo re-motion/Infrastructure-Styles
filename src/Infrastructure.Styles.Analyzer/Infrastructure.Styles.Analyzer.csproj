@@ -7,7 +7,6 @@
         <developmentDependency>true</developmentDependency>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <NoPackageAnalysis>true</NoPackageAnalysis>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Version>1.0.0</Version>
     </PropertyGroup>
     <ItemGroup>

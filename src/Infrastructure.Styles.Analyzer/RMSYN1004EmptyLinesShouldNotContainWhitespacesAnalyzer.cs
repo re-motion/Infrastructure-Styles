@@ -41,92 +41,91 @@ namespace Infrastructure.Styles.Analyzer
       context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
       context.EnableConcurrentExecution();
       
-      context.RegisterSyntaxTreeAction(analysisContext =>
-      {
-        var possibleDiagnosticStart = 0;
-        var possibleDiagnosticEnd = 0;
-        var previousTokenEnd = 0;
-        var possibleDiagnosticCase = true;
-
-        var root = analysisContext.Tree.GetRoot(analysisContext.CancellationToken);
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
-        {
-          var triviaKind = trivia.Kind();
-          if (!possibleDiagnosticCase)
-          {
-            if (triviaKind != SyntaxKind.EndOfLineTrivia)
-              continue;
-
-            var spanEnd = trivia.Span.End;
-            possibleDiagnosticStart = spanEnd;
-            possibleDiagnosticEnd = spanEnd;
-            previousTokenEnd = spanEnd;
-            possibleDiagnosticCase = true;
-            continue;
-          }
-
-          // Check if there is a token between this one and the last one since we are only checking trivia
-          if (previousTokenEnd != trivia.SpanStart)
-          {
-            ReportDiagnosticIfNeeded();
-
-            if (triviaKind == SyntaxKind.EndOfLineTrivia)
-            {
-              var spanEnd = trivia.Span.End;
-              possibleDiagnosticStart = spanEnd;
-              possibleDiagnosticEnd = spanEnd;
-              previousTokenEnd = spanEnd;
-            }
-            else
-            {
-              possibleDiagnosticCase = false;
-            }
-            
-            continue;
-          }
-
-          var triviaSpan = trivia.Span;
-          if (triviaKind == SyntaxKind.EndOfLineTrivia)
-          {
-            possibleDiagnosticEnd = triviaSpan.Start;
-          }
-          else if (triviaKind != SyntaxKind.WhitespaceTrivia)
-          {
-            if (possibleDiagnosticStart != possibleDiagnosticEnd)
-              ReportDiagnosticIfNeeded();
-
-            possibleDiagnosticCase = false;
-            continue;
-          }
-
-          previousTokenEnd = triviaSpan.End;
-        }
-        
-        // Make sure we also catch problems in the last line
-        if (possibleDiagnosticCase)
-        {
-          var treeLength = analysisContext.Tree.Length;
-          if (treeLength == previousTokenEnd)
-          {
-            possibleDiagnosticEnd = treeLength; 
-            ReportDiagnosticIfNeeded();
-          }
-        }
-        
-        void ReportDiagnosticIfNeeded()
-        {
-          var textSpan = TextSpan.FromBounds(possibleDiagnosticStart, possibleDiagnosticEnd);
-          if (textSpan.IsEmpty)
-            return;
-          
-          var diagnostic = Diagnostic.Create(Descriptor, Location.Create(analysisContext.Tree, textSpan));
-          analysisContext.ReportDiagnostic(diagnostic);
-        }
-      });
+      context.RegisterSyntaxTreeAction(Analyze);
     }
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
       ImmutableArray.Create(Descriptor);
+
+    private static void Analyze(SyntaxTreeAnalysisContext analysisContext)
+    {
+      var possibleDiagnosticStart = 0;
+      var possibleDiagnosticEnd = 0;
+      var previousTokenEnd = 0;
+      var possibleDiagnosticCase = true;
+
+      var root = analysisContext.Tree.GetRoot(analysisContext.CancellationToken);
+      foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+      {
+        var triviaKind = trivia.Kind();
+        if (!possibleDiagnosticCase)
+        {
+          if (triviaKind != SyntaxKind.EndOfLineTrivia) continue;
+
+          var spanEnd = trivia.Span.End;
+          possibleDiagnosticStart = spanEnd;
+          possibleDiagnosticEnd = spanEnd;
+          previousTokenEnd = spanEnd;
+          possibleDiagnosticCase = true;
+          continue;
+        }
+
+        // Check if there is a token between this one and the last one since we are only checking trivia
+        if (previousTokenEnd != trivia.SpanStart)
+        {
+          ReportDiagnosticIfNeeded();
+
+          if (triviaKind == SyntaxKind.EndOfLineTrivia)
+          {
+            var spanEnd = trivia.Span.End;
+            possibleDiagnosticStart = spanEnd;
+            possibleDiagnosticEnd = spanEnd;
+            previousTokenEnd = spanEnd;
+          }
+          else
+          {
+            possibleDiagnosticCase = false;
+          }
+
+          continue;
+        }
+
+        var triviaSpan = trivia.Span;
+        if (triviaKind == SyntaxKind.EndOfLineTrivia)
+        {
+          possibleDiagnosticEnd = triviaSpan.Start;
+        }
+        else if (triviaKind != SyntaxKind.WhitespaceTrivia)
+        {
+          if (possibleDiagnosticStart != possibleDiagnosticEnd) ReportDiagnosticIfNeeded();
+
+          possibleDiagnosticCase = false;
+          continue;
+        }
+
+        previousTokenEnd = triviaSpan.End;
+      }
+
+      // Make sure we also catch problems in the last line
+      if (possibleDiagnosticCase)
+      {
+        var treeLength = analysisContext.Tree.Length;
+        if (treeLength == previousTokenEnd)
+        {
+          possibleDiagnosticEnd = treeLength;
+          ReportDiagnosticIfNeeded();
+        }
+      }
+
+      void ReportDiagnosticIfNeeded()
+      {
+        var textSpan = TextSpan.FromBounds(possibleDiagnosticStart, possibleDiagnosticEnd);
+        if (textSpan.IsEmpty) return;
+
+        var diagnostic = Diagnostic.Create(Descriptor, Location.Create(analysisContext.Tree, textSpan));
+        analysisContext.ReportDiagnostic(diagnostic);
+      }
+    }
   }
 }

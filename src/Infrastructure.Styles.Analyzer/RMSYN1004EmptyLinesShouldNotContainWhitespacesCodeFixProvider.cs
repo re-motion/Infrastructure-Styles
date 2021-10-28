@@ -48,6 +48,10 @@ namespace Infrastructure.Styles.Analyzer
       return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+      ImmutableArray.Create(RMSYN1004EmptyLinesShouldNotContainWhitespacesAnalyzer.DiagnosticId);
+
     private static async Task<Document> CodeFix(CancellationToken cancellationToken, CodeFixContext context)
     {
       var diagnostic = context.Diagnostics.First();
@@ -58,14 +62,18 @@ namespace Infrastructure.Styles.Analyzer
 
 
       var syntaxToken = syntaxRoot.FindToken(diagnosticSpan.Start);
-      var newLeadingTrivia = RemoveWhitespacesFromEmptyLines(syntaxToken.LeadingTrivia, syntaxToken.IsKind(SyntaxKind.EndOfFileToken));
+      var newLeadingTrivia = RemoveWhitespacesFromEmptyLines(
+        syntaxToken.LeadingTrivia,
+        syntaxToken.IsKind(SyntaxKind.EndOfFileToken));
       var newSyntaxToken = syntaxToken.WithLeadingTrivia(newLeadingTrivia);
 
       var newSyntaxRoot = syntaxRoot.ReplaceToken(syntaxToken, newSyntaxToken);
       return context.Document.WithSyntaxRoot(newSyntaxRoot);
     }
 
-    private static SyntaxTriviaList RemoveWhitespacesFromEmptyLines(SyntaxTriviaList previousSyntaxTrivia, bool isEofToken)
+    private static SyntaxTriviaList RemoveWhitespacesFromEmptyLines(
+      SyntaxTriviaList previousSyntaxTrivia,
+      bool isEofToken)
     {
       var triviaCount = previousSyntaxTrivia.Count;
       var newSyntaxTrivia = new List<SyntaxTrivia>(triviaCount);
@@ -98,8 +106,5 @@ namespace Infrastructure.Styles.Analyzer
       
       return SyntaxFactory.TriviaList(newSyntaxTrivia);
     }
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-      ImmutableArray.Create(RMSYN1004EmptyLinesShouldNotContainWhitespacesAnalyzer.DiagnosticId);
   }
 }
