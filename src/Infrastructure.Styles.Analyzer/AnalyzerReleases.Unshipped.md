@@ -7,3 +7,4 @@ RMSYN1002  |  Formatting  |  Warning | Method invocation must not have a whitesp
 RMSYN1003  |  Formatting  |  Warning | Invalid formatting of a keyword expression
 RMSYN1004  |  Formatting  |  Warning | Lines should not contain trailing whitespaces
 RMSYN1005  |  Formatting  |  Warning | File must end with one newline
+RMSYN1006  |  Formatting  |  Warning | Lines should not be too long
