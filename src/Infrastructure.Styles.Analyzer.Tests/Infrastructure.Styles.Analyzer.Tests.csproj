@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <IsPackable>false</IsPackable>
+        <AssemblyName>Remotion.Infrastructure.Styles.Analyzer.Tests</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Gu.Roslyn.Asserts" Version="3.3.2" />

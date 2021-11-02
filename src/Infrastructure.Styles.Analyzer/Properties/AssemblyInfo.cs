@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Infrastructure.Styles.Analyzer.Tests")]
+[assembly:InternalsVisibleTo("Remotion.Infrastructure.Styles.Analyzer.Tests")]
