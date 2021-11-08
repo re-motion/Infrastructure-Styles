@@ -16,8 +16,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -39,23 +37,38 @@ namespace Infrastructure.Styles.Analyzer
       context.EnableConcurrentExecution();
       context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-      context.RegisterSyntaxNodeAction(AnalyzeFile, ImmutableArray.Create(SyntaxKind.CompilationUnit));
+      context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
     }
 
-    private void AnalyzeFile (SyntaxNodeAnalysisContext context)
+    private void AnalyzeSyntaxTree (SyntaxTreeAnalysisContext context)
     {
-      var compilationUnitSyntax = (CompilationUnitSyntax) context.Node;
-      var lastFileToken = compilationUnitSyntax.GetLastToken();
-      var EOFToken = compilationUnitSyntax.EndOfFileToken;
+      var syntaxTree = context.Tree;
+      var sourceText = syntaxTree.GetText();
+      var lines = sourceText.Lines;
+      
+      if (lines.Count == 0)
+        return;
 
-      if (EOFToken.HasLeadingTrivia
-          || lastFileToken.TrailingTrivia.Count != 1
-          || !lastFileToken.TrailingTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
+      var lastLine = lines[lines.Count - 1];
+      var isEmpty = lastLine.Start == lastLine.End;
+      if (!isEmpty && lastLine.End == lastLine.EndIncludingLineBreak)
       {
-        var start = lastFileToken.Span.End;
-        var end = EOFToken.Span.Start;
-        var location = Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(start, end));
-        context.ReportDiagnostic(Diagnostic.Create(s_descriptor, location));
+        var diagnostic = Diagnostic.Create(s_descriptor, Location.Create(syntaxTree, lastLine.Span));
+        context.ReportDiagnostic(diagnostic);
+      }
+      
+      // Ensure that there are no empty lines preceding the last lines -> there should only be one newline at the end
+      var start = lines.Count - 2;
+      var i = start;
+      while (i >= 0 && lines[i].Text != null && string.IsNullOrWhiteSpace(sourceText.ToString(lines[i].Span)))
+        i--;
+
+      if (i != start)
+      {
+        var textSpan = TextSpan.FromBounds(lines[i + 1].Start, lastLine.End);
+        var location = Location.Create(syntaxTree, textSpan);
+        var diagnostic = Diagnostic.Create(s_descriptor, location);
+        context.ReportDiagnostic(diagnostic);
       }
     }
 

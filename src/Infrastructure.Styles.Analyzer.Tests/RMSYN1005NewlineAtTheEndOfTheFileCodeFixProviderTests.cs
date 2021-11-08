@@ -32,7 +32,7 @@ namespace Infrastructure.Styles.Analyzer.Tests
 namespace N
 {
     class C { }
-}↓";
+↓}";
 
       var after = @"
 namespace N
@@ -51,8 +51,8 @@ namespace N
 namespace N
 {
     class C { }
-}↓
-
+}
+↓
 ";
 
       var after = @"
@@ -72,13 +72,61 @@ namespace N
 namespace N
 {
     class C { }
-}↓    ";
+↓}    ";
+
+      var after = @"
+namespace N
+{
+    class C { }
+}    
+";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_WithPreprocessorDirectiveAtTheEnd ()
+    {
+      var before = @"
+#if DEBUG
+namespace N
+{
+    class C { }
+}
+#endif
+↓
+";
+
+      var after = @"
+#if DEBUG
+namespace N
+{
+    class C { }
+}
+#endif
+";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_WithLineCommentAtTheEnd ()
+    {
+      var before = @"
+namespace N
+{
+    class C { }
+}
+// test
+↓
+";
 
       var after = @"
 namespace N
 {
     class C { }
 }
+// test
 ";
 
       RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);

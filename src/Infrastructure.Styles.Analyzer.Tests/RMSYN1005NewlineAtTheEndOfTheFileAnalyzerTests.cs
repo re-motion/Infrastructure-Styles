@@ -38,6 +38,34 @@ namespace N
     }
 
     [Test]
+    public void Analyze_WithTriviaAtTheEnd_Valid ()
+    {
+      var code = @"
+namespace N
+{
+    class C { }
+}
+// test" + "\r\n";
+
+      RoslynAssert.Valid(Analyzer, code);
+    }
+
+    [Test]
+    public void Analyze_WithPreprocessorDirective_Valid ()
+    {
+      var code = @"
+#if DEBUG
+namespace N
+{
+    class C { }
+}
+#endif
+";
+
+      RoslynAssert.Valid(Analyzer, code);
+    }
+
+    [Test]
     public void Analyze_WithOneWindowsStyleNewlineAtTheEndOfTheFile_Valid ()
     {
       var code = @"
@@ -56,7 +84,7 @@ namespace N
 namespace N
 {
     class C { }
-}↓  ";
+↓}  ";
 
       RoslynAssert.Diagnostics(Analyzer, ExpectedDiagnostic.Create(StyleAnalyzer.DiagnosticId, StyleAnalyzer.Message), code);
     }
@@ -68,7 +96,7 @@ namespace N
 namespace N
 {
     class C { }
-}↓";
+↓}";
 
       RoslynAssert.Diagnostics(Analyzer, ExpectedDiagnostic.Create(StyleAnalyzer.DiagnosticId, StyleAnalyzer.Message), code);
     }
@@ -80,10 +108,9 @@ namespace N
 namespace N
 {
     class C { }
-}↓
-
+}
+↓
 ";
-
       RoslynAssert.Diagnostics(Analyzer, ExpectedDiagnostic.Create(StyleAnalyzer.DiagnosticId, StyleAnalyzer.Message), code);
     }
   }

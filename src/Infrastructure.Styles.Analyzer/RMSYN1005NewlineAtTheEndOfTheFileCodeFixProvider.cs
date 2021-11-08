@@ -15,6 +15,7 @@
 // along with re-motion; if not, see http://www.gnu.org/licenses.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StyleAnalyzer = Infrastructure.Styles.Analyzer.RMSYN1005NewlineAtTheEndOfTheFileAnalyzer;
 
 namespace Infrastructure.Styles.Analyzer
@@ -53,17 +55,60 @@ namespace Infrastructure.Styles.Analyzer
       if (syntaxRoot is null)
         return context.Document;
 
-      var existingEndOfLine = syntaxRoot.DescendantTrivia().First(t => t.IsKind(SyntaxKind.EndOfLineTrivia));
-      var lastToken = syntaxRoot.FindToken(diagnosticLocation.SourceSpan.Start);
-      var eofToken = syntaxRoot.FindToken(diagnosticLocation.SourceSpan.End);
+      var lastToken = syntaxRoot.GetLastToken();
+      var endOfFileToken = syntaxRoot.GetLastToken(includeZeroWidth: true);
+      Debug.Assert(endOfFileToken.IsKind(SyntaxKind.EndOfFileToken));
 
       var updatedRoot = syntaxRoot.ReplaceTokens(
-          new[] { lastToken, eofToken },
+          new[] { lastToken, endOfFileToken },
           (token, _) => token.IsKind(lastToken.Kind())
-              ? token.WithTrailingTrivia(SyntaxTriviaList.Create(existingEndOfLine))
-              : token.WithLeadingTrivia(SyntaxTriviaList.Empty));
+              ? ReplaceLastToken(in lastToken)
+              : ReplaceEofToken(in endOfFileToken));
 
       return context.Document.WithSyntaxRoot(updatedRoot);
+    }
+
+    private static SyntaxToken ReplaceLastToken (in SyntaxToken lastToken)
+    {
+      if (lastToken.HasTrailingTrivia && lastToken.TrailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
+        return lastToken;
+
+      var newTrailingTrivia = lastToken.TrailingTrivia.Add(SyntaxFactory.LineFeed);
+      return lastToken.WithTrailingTrivia(newTrailingTrivia);
+    }
+
+    private static SyntaxToken ReplaceEofToken (in SyntaxToken endOfFileToken)
+    {
+      if (!endOfFileToken.HasLeadingTrivia)
+        return endOfFileToken;
+
+      var leadingTrivia = endOfFileToken.LeadingTrivia;
+
+      // Check if there are trailing newlines and how many
+      var i = leadingTrivia.Count;
+      while (i > 0 && leadingTrivia[i - 1].IsKind(SyntaxKind.EndOfLineTrivia))
+        i--;
+
+      var hasImplicitNewline = false;
+      if (i > 0 && leadingTrivia[i - 1].HasStructure)
+      {
+        var structure = leadingTrivia[i - 1].GetStructure()!;
+        var lastStructureToken = structure.GetLastToken(includeZeroWidth: true);
+        hasImplicitNewline = lastStructureToken.HasTrailingTrivia && lastStructureToken.TrailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia);
+      }
+
+      // None found
+      if (i == leadingTrivia.Count)
+        return endOfFileToken;
+
+      // If all are newlines we can remove them
+      if (i == 0)
+        return endOfFileToken.WithLeadingTrivia(SyntaxTriviaList.Empty);
+
+      // but otherwise we have to remove one less as there is trivia in that line
+      var endIndex = hasImplicitNewline ? i : i + 1;
+      var newLeadingTriva = SyntaxFactory.TriviaList(leadingTrivia.Take(endIndex));
+      return endOfFileToken.WithLeadingTrivia(newLeadingTriva);
     }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(StyleAnalyzer.DiagnosticId);
