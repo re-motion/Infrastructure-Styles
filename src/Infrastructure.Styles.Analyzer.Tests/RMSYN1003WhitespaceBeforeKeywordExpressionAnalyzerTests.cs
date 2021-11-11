@@ -406,5 +406,130 @@ namespace N
               string.Format(StyleAnalyzer.MessageFormat, "checked")),
           code);
     }
+
+    [Test]
+    public void Analyze_BaseConstructorInitializerWithOneWhitespace_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      public C(): base↓ () {}
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "base")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_BaseConstructorInitializeWithMoreThanOneWhitespace_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      public C(): base↓    () {}
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "base")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_BaseConstructorInitializerWithMoreThanOneWhitespaceAndNewLine_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      public C(): base↓
+                    () {}
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "base")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_ThisConstructorInitializerWithOneWhitespace_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      public C(): this↓ (3) {}
+      public C(int a) {}
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "this")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_ThisConstructorInitializeWithMoreThanOneWhitespace_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      public C(): this↓    (3) {}
+      public C(int a) {}
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "this")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_ThisConstructorInitializerWithMoreThanOneWhitespaceAndNewLine_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      public C(): this↓
+                    (3) {}
+      public C(int a) {}
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "this")),
+          code);
+    }
   }
 }
