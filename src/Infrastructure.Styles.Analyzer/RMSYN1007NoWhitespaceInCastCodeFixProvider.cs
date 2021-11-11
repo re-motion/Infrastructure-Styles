@@ -16,18 +16,16 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using StyleAnalyzer = Infrastructure.Styles.Analyzer.RMSYN1003WhitespaceBeforeKeywordExpressionAnalyzer;
+using StyleAnalyzer = Infrastructure.Styles.Analyzer.RMSYN1007NoWhitespaceInCastAnalyzer;
 
 namespace Infrastructure.Styles.Analyzer
 {
   [ExportCodeFixProvider(LanguageNames.CSharp)]
-  public class RMSYN1003WhitespaceBeforeKeywordExpressionCodeFixProvider : CodeFixProvider
+  public class RMSYN1007NoWhitespaceInCastCodeFixProvider : CodeFixProvider
   {
     public override FixAllProvider GetFixAllProvider ()
     {
@@ -39,12 +37,14 @@ namespace Infrastructure.Styles.Analyzer
       context.RegisterCodeFix(
           CodeAction.Create(
               "Fix whitespaces",
-              async cancellationToken => await SimpleWhitespaceCodeFixer.RemoveWhitespacesBetweenTwoTokens(context, cancellationToken),
+              async cancellationToken =>
+                  await SimpleWhitespaceCodeFixer.RemoveWhitespacesBetweenTwoTokens(context, cancellationToken),
               StyleAnalyzer.DiagnosticId),
           context.Diagnostics.First());
       return Task.CompletedTask;
     }
 
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(StyleAnalyzer.DiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+      ImmutableArray.Create(StyleAnalyzer.DiagnosticId);
   }
 }

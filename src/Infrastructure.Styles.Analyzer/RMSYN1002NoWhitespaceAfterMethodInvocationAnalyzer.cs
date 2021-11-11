@@ -63,7 +63,11 @@ namespace Infrastructure.Styles.Analyzer
       var left = node.NewKeyword;
       var right = node.ArgumentList.OpenParenToken;
 
-      AnalyzeWhitespace(context, left, right);
+      SimpleWhitespaceAnalyzer.AnalyzeNoWhitespaceBetweenTokens(
+          ref context,
+          Rule,
+          in left,
+          in right);
     }
 
     private static void AnalyzeObjectCreationExpression(SyntaxNodeAnalysisContext context)
@@ -75,7 +79,11 @@ namespace Infrastructure.Styles.Analyzer
 
       var right = node.ArgumentList.OpenParenToken;
 
-      AnalyzeWhitespace(context, left, right);
+      SimpleWhitespaceAnalyzer.AnalyzeNoWhitespaceBetweenTokens(
+          ref context,
+          Rule,
+          in left,
+          in right);
     }
 
     private static void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
@@ -84,19 +92,11 @@ namespace Infrastructure.Styles.Analyzer
       var left = node.Expression.GetLastToken();
       var right = node.ArgumentList.OpenParenToken;
 
-      AnalyzeWhitespace(context, left, right);
-    }
-
-    private static void AnalyzeWhitespace(SyntaxNodeAnalysisContext context, SyntaxToken left, SyntaxToken right)
-    {
-      if (left.TrailingTrivia.Count == 0 && right.LeadingTrivia.Count == 0)
-        return;
-
-      var newSpan = TextSpan.FromBounds(left.Span.End, right.SpanStart);
-      var newLocation = Location.Create(context.Node.SyntaxTree, newSpan);
-      var diagnostic = Diagnostic.Create(Rule, newLocation);
-
-      context.ReportDiagnostic(diagnostic);
+      SimpleWhitespaceAnalyzer.AnalyzeNoWhitespaceBetweenTokens(
+          ref context,
+          Rule,
+          in left,
+          in right);
     }
   }
 }
