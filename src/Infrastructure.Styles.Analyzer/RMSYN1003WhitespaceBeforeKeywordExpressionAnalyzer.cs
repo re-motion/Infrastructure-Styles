@@ -68,6 +68,13 @@ namespace Infrastructure.Styles.Analyzer
               static n => ((CheckedExpressionSyntax) n).Keyword,
               static n => ((CheckedExpressionSyntax) n).OpenParenToken),
           ImmutableArray.Create(SyntaxKind.CheckedExpression, SyntaxKind.UncheckedExpression));
+      // : base(...), : this(...)
+      context.RegisterSyntaxNodeAction(
+          static analysisContext => AnalyzeKeywordExpression(
+              analysisContext,
+              static n => ((ConstructorInitializerSyntax) n).ThisOrBaseKeyword,
+              static n => ((ConstructorInitializerSyntax) n).ArgumentList.OpenParenToken),
+          ImmutableArray.Create(SyntaxKind.ThisConstructorInitializer, SyntaxKind.BaseConstructorInitializer));
     }
 
     private static void AnalyzeKeywordExpression (

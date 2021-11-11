@@ -97,5 +97,157 @@ namespace N
 
       RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
     }
+
+    [Test]
+    public void CodeFix_BaseWithOneWhitespace ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      public C(): base↓ () {}
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      public C(): base() {}
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_BaseWithMultipleWhitespaces ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      public C(): base↓    () {}
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      public C(): base() {}
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_BaseWithNewlineAndWhitespaces ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      public C(): base↓
+                    () {}
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      public C(): base() {}
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_ThisWithOneWhitespace ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      public C(): this↓ (3) {}
+      public C(int a) {}
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      public C(): this(3) {}
+      public C(int a) {}
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_ThisWithMultipleWhitespaces ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      public C(): this↓    (3) {}
+      public C(int a) {}
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      public C(): this(3) {}
+      public C(int a) {}
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_ThisWithNewlineAndWhitespaces ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      public C(): this↓
+                    (3) {}
+      public C(int a) {}
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      public C(): this(3) {}
+      public C(int a) {}
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
   }
 }
