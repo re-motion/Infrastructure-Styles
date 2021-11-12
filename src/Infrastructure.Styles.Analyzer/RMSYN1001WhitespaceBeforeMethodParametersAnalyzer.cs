@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Infrastructure.Styles.Analyzer
 {
@@ -66,7 +65,12 @@ namespace Infrastructure.Styles.Analyzer
       if (right is null)
         return;
 
-      AnalyzeWhitespace(context, left, (SyntaxToken) right);
+      var newRight = right.Value;
+      SimpleWhitespaceAnalyzer.AnalyzeExactlyOneWhitespaceBetweenTokens(
+          ref context,
+          Rule,
+          in left,
+          in newRight);
     }
 
     private static void AnalyzeDelegateDeclaration(SyntaxNodeAnalysisContext context)
@@ -77,7 +81,11 @@ namespace Infrastructure.Styles.Analyzer
         : typeParameters.GreaterThanToken;
       var right = delegateDeclaration.ParameterList.OpenParenToken;
 
-      AnalyzeWhitespace(context, left, right);
+      SimpleWhitespaceAnalyzer.AnalyzeExactlyOneWhitespaceBetweenTokens(
+          ref context,
+          Rule,
+          in left,
+          in right);
     }
 
     private static void AnalyzeLocalFunction(SyntaxNodeAnalysisContext context)
@@ -88,7 +96,11 @@ namespace Infrastructure.Styles.Analyzer
         : typeParameters.GreaterThanToken;
       var right = localFunctionStatement.ParameterList.OpenParenToken;
 
-      AnalyzeWhitespace(context, left, right);
+      SimpleWhitespaceAnalyzer.AnalyzeExactlyOneWhitespaceBetweenTokens(
+          ref context,
+          Rule,
+          in left,
+          in right);
     }
 
     private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
@@ -99,7 +111,11 @@ namespace Infrastructure.Styles.Analyzer
         : typeParameters.GreaterThanToken;
       var right = methodDeclaration.ParameterList.OpenParenToken;
 
-      AnalyzeWhitespace(context, left, right);
+      SimpleWhitespaceAnalyzer.AnalyzeExactlyOneWhitespaceBetweenTokens(
+          ref context,
+          Rule,
+          in left,
+          in right);
     }
 
     private static void AnalyzeConstructor(SyntaxNodeAnalysisContext context)
@@ -108,26 +124,11 @@ namespace Infrastructure.Styles.Analyzer
       var left = constructorDeclaration.Identifier;
       var right = constructorDeclaration.ParameterList.OpenParenToken;
 
-      AnalyzeWhitespace(context, left, right);
-    }
-
-    private static void AnalyzeWhitespace(SyntaxNodeAnalysisContext context, SyntaxToken left, SyntaxToken right)
-    {
-      var trivia = left.TrailingTrivia;
-      if (trivia.Count == 0)
-      {
-        var diagnostic = Diagnostic.Create(Rule, right.GetLocation());
-
-        context.ReportDiagnostic(diagnostic);
-      }
-      else if (trivia.Count != 1 || !SyntaxFactory.Space.IsEquivalentTo(trivia.First()))
-      {
-        var newSpan = TextSpan.FromBounds(left.Span.End, right.SpanStart);
-        var newLocation = Location.Create(right.Parent!.SyntaxTree, newSpan);
-        var diagnostic = Diagnostic.Create(Rule, newLocation);
-
-        context.ReportDiagnostic(diagnostic);
-      }
+      SimpleWhitespaceAnalyzer.AnalyzeExactlyOneWhitespaceBetweenTokens(
+          ref context,
+          Rule,
+          in left,
+          in right);
     }
   }
 }
