@@ -8,7 +8,7 @@
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <NoPackageAnalysis>true</NoPackageAnalysis>
         <AssemblyName>Remotion.Infrastructure.Styles.Analyzer</AssemblyName>
-        <Version>1.1.0</Version>
+        <Version>1.2.0</Version>
     </PropertyGroup>
     <PropertyGroup>
         <Authors>rubicon IT GmbH</Authors>
