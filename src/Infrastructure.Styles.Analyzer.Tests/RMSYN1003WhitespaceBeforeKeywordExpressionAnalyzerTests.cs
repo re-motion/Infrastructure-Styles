@@ -531,5 +531,184 @@ namespace N
               string.Format(StyleAnalyzer.MessageFormat, "this")),
           code);
     }
+
+    [Test]
+    public void Analyze_NewExpressionWithNoWhitespace_Valid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new('c', 1);
+    }
+}";
+
+      RoslynAssert.Valid(Analyzer, code);
+    }
+
+    [Test]
+    public void Analyze_NewExpressionWithOneWhitespace_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new↓ ('c', 1);
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "new")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_NewExpressionWithMoreThanOneWhitespace_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new↓   ('c', 1);
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "new")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_NewExpressionWithMoreThanOneWhitespaceAndNewLine_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new↓   
+          ('c', 1);
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "new")),
+          code);
+    }
+
+
+    [Test]
+    public void Analyze_NameOfWithNoWhitespace_Valid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof(Test);
+    }
+}";
+
+      RoslynAssert.Valid(Analyzer, code);
+    }
+
+    [Test]
+    public void Analyze_NameOfWithOneWhitespace_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof↓ (Test);
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "nameof")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_NameOfWithMoreThanOneWhitespace_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof↓   (Test);
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "nameof")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_NameOfWithMoreThanOneWhitespaceAndNewLine_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof↓   
+                 (Test);
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "nameof")),
+          code);
+    }
+
+    [Test]
+    public void Analyze_NameOfWithANameOfFunction_Invalid ()
+    {
+      var code = @"
+namespace N
+{
+    class C
+    {
+      private string nameof(int a) => null;
+      private const int Test = 34;
+      private System.String StringType () => nameof↓ (Test);
+    }
+}";
+
+      RoslynAssert.Diagnostics(
+          Analyzer,
+          ExpectedDiagnostic.Create(
+              StyleAnalyzer.DiagnosticId,
+              string.Format(StyleAnalyzer.MessageFormat, "nameof")),
+          code);
+    }
   }
 }

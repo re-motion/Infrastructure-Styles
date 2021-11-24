@@ -249,5 +249,157 @@ namespace N
 
       RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
     }
+
+    [Test]
+    public void CodeFix_NewExpressionWithOneWhitespace ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new↓ ('c', 1);
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new('c', 1);
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_NewExpressionWithMultipleWhitespaces ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new↓   ('c', 1);
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new('c', 1);
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_NewExpressionWithNewlineAndWhitespaces ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new↓   
+          ('c', 1);
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      private System.String StringType () => new('c', 1);
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_NameOfWithOneWhitespace ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof↓ (Test);
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof(Test);
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_NameOfWithMultipleWhitespaces ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof↓   (Test);
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof(Test);
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+
+    [Test]
+    public void CodeFix_NameOfWithNewlineAndWhitespaces ()
+    {
+      var before = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof↓   
+                 (Test);
+    }
+}";
+
+      var after = @"
+namespace N
+{
+    class C
+    {
+      private const int Test = 34;
+      private System.String StringType () => nameof(Test);
+    }
+}";
+
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
   }
 }
