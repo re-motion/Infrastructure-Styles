@@ -75,6 +75,30 @@ namespace Infrastructure.Styles.Analyzer
               static n => ((ConstructorInitializerSyntax) n).ThisOrBaseKeyword,
               static n => ((ConstructorInitializerSyntax) n).ArgumentList.OpenParenToken),
           ImmutableArray.Create(SyntaxKind.ThisConstructorInitializer, SyntaxKind.BaseConstructorInitializer));
+      // new(...)
+      context.RegisterSyntaxNodeAction(
+          static analysisContext => AnalyzeKeywordExpression(
+              analysisContext,
+              static n => ((ImplicitObjectCreationExpressionSyntax) n).NewKeyword,
+              static n => ((ImplicitObjectCreationExpressionSyntax) n).ArgumentList.OpenParenToken),
+          ImmutableArray.Create(SyntaxKind.ImplicitObjectCreationExpression));
+      // nameof(...)
+      context.RegisterSyntaxNodeAction(
+          static analysisContext =>
+          {
+              var invocationExpression = (InvocationExpressionSyntax) analysisContext.Node;
+              if (invocationExpression.Expression is IdentifierNameSyntax identifierName
+                  && identifierName.Identifier.IsKind(SyntaxKind.IdentifierToken)
+                  && identifierName.Identifier.Text == "nameof")
+              {
+                  // We deliberately ignore the special case of a "nameof" methods existing as the effects are minimal and the chance of it occuring are near zero
+                  AnalyzeKeywordExpression(
+                          analysisContext,
+                          static n => ((InvocationExpressionSyntax) n).Expression.GetLastToken(),
+                          static n => ((InvocationExpressionSyntax) n).ArgumentList.OpenParenToken);
+              }
+          },
+          ImmutableArray.Create(SyntaxKind.InvocationExpression));
     }
 
     private static void AnalyzeKeywordExpression (
