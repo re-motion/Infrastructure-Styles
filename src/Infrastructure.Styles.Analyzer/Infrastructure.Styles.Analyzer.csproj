@@ -4,16 +4,19 @@
         <LangVersion>9</LangVersion>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <developmentDependency>true</developmentDependency>
         <IncludeBuildOutput>false</IncludeBuildOutput>
-        <NoPackageAnalysis>true</NoPackageAnalysis>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <AssemblyName>Remotion.Infrastructure.Styles.Analyzer</AssemblyName>
         <Version>1.2.0</Version>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
     </PropertyGroup>
     <PropertyGroup>
         <Authors>rubicon IT GmbH</Authors>
         <Title>$(AssemblyName)</Title>
         <Description>Contains roslyn analyzers that enforce the re-motion code style.</Description>
+        <RepositoryUrl>https://github.com/re-motion/Infrastructure-Styles</RepositoryUrl>
+        <DevelopmentDependency>true</DevelopmentDependency>
+        <NoPackageAnalysis>true</NoPackageAnalysis>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" PrivateAssets="All" />
@@ -22,10 +25,17 @@
         <None Include="..\..\Infrastructure.Styles.licenseheader">
             <Link>Infrastructure.Styles.licenseheader</Link>
         </None>
-        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
     <ItemGroup>
         <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
         <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
     </ItemGroup>
+    <ItemGroup>
+        <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
+    </ItemGroup>
+    <Target Name="_AddAnalyzersToOutput">
+        <ItemGroup>
+            <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="analyzers/dotnet/cs" />
+        </ItemGroup>
+    </Target>
 </Project>
