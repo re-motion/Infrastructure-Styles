@@ -32,14 +32,14 @@ namespace Infrastructure.Styles.Analyzer
     internal const string Description = "Method declaration must have exactly ONE space before its parameters";
     internal const string Category = "Formatting";
 
-    private static readonly DiagnosticDescriptor Rule = new(
-      DiagnosticId,
-      Title,
-      Message,
-      Category,
-      DiagnosticSeverity.Warning,
-      true,
-      Description);
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        DiagnosticId,
+        Title,
+        Message,
+        Category,
+        DiagnosticSeverity.Warning,
+        true,
+        Description);
 
     public override void Initialize(AnalysisContext context)
     {

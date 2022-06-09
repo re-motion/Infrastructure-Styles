@@ -34,14 +34,14 @@ namespace Infrastructure.Styles.Analyzer
     internal const string Description = "Method invocation must not have a whitespace before its arguments";
     internal const string Category = "Formatting";
 
-    private static readonly DiagnosticDescriptor Rule = new(
-      DiagnosticId,
-      Title,
-      Message,
-      Category,
-      DiagnosticSeverity.Warning,
-      true,
-      Description);
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        DiagnosticId,
+        Title,
+        Message,
+        Category,
+        DiagnosticSeverity.Warning,
+        true,
+        Description);
 
     public override void Initialize(AnalysisContext context)
     {

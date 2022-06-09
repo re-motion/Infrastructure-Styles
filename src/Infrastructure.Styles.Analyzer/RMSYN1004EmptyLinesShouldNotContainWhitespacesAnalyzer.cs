@@ -27,7 +27,7 @@ namespace Infrastructure.Styles.Analyzer
   {
     public const string DiagnosticId = "RMSYN1004";
 
-    private static readonly DiagnosticDescriptor Descriptor = new(
+    private static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
         DiagnosticId,
         "Lines should not contain trailing whitespaces",
         "Line contains trailing whitespaces",

@@ -33,7 +33,13 @@ namespace Infrastructure.Styles.Analyzer
     internal const string MessageFormat = "'{0}' must be immediately followed by '('.";
     internal const string Category = "Formatting";
 
-    private static readonly DiagnosticDescriptor s_descriptor = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, true);
+    private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+        DiagnosticId,
+        Title,
+        MessageFormat,
+        Category,
+        DiagnosticSeverity.Warning,
+        true);
 
     public override void Initialize (AnalysisContext context)
     {

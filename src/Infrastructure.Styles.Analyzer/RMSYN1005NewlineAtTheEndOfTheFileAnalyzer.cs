@@ -30,7 +30,13 @@ namespace Infrastructure.Styles.Analyzer
     internal const string Message = "The file must end with a single newline.";
     internal const string Category = "Formatting";
 
-    private static readonly DiagnosticDescriptor s_descriptor = new(DiagnosticId, Title, Message, Category, DiagnosticSeverity.Warning, true);
+    private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+        DiagnosticId,
+        Title,
+        Message,
+        Category,
+        DiagnosticSeverity.Warning,
+        true);
 
     public override void Initialize (AnalysisContext context)
     {

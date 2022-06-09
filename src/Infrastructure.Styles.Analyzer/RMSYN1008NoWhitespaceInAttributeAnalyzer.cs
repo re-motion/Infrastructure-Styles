@@ -32,7 +32,7 @@ namespace Infrastructure.Styles.Analyzer
     internal const string Description = "Attribute must not contain a space between the identifier and the argument list";
     internal const string Category = "Formatting";
 
-    private static readonly DiagnosticDescriptor Rule = new(
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         Message,

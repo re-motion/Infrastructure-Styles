@@ -32,7 +32,7 @@ namespace Infrastructure.Styles.Analyzer
     internal const string Description = "Cast expression must no contain a space";
     internal const string Category = "Formatting";
 
-    private static readonly DiagnosticDescriptor Rule = new(
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         Message,
