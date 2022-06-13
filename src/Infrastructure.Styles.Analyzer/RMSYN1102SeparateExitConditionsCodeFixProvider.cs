@@ -66,7 +66,7 @@ namespace Infrastructure.Styles.Analyzer
     {
       var illegalExpression = syntaxRoot.FindNode(diagnosticSpan);
 
-      if (!RMSYN1102SeparateExitConditionsAnalyzer.IsInsideIfStatement(illegalExpression, out var ifStatement))
+      if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(illegalExpression, out var ifStatement))
         return syntaxRoot;
 
       if (ifStatement == null)
@@ -75,6 +75,7 @@ namespace Infrastructure.Styles.Analyzer
       var syntaxWrapper = CreateSyntaxWrapper(ifStatement);
 
       var syntaxNodes = new List<IfAndElseIfStatementSyntaxWrapper>();
+      
       FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, syntaxWrapper.Copy(),
         (ExpressionSyntax) illegalExpression);
 
@@ -123,29 +124,11 @@ namespace Infrastructure.Styles.Analyzer
     }
 
 
-    private static bool IsIllegalExpression (SyntaxNode expression, out ExpressionSyntax? illegalExpression)
-    {
-      if (expression.IsKind(SyntaxKind.ParenthesizedExpression))
-      {
-        var parenthesizedExpression = expression as ParenthesizedExpressionSyntax;
-        return IsIllegalExpression(parenthesizedExpression!.Expression, out illegalExpression);
-      }
-
-      if (expression.IsKind(SyntaxKind.LogicalOrExpression) || expression.IsKind(SyntaxKind.OrPattern))
-      {
-        illegalExpression = expression as ExpressionSyntax;
-        return true;
-      }
-
-      illegalExpression = null;
-      return false;
-    }
-
     private static void FillSyntaxNodeListWithProperStatementsFromOrExpression (
       List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes, IfAndElseIfStatementSyntaxWrapper blueprint,
       ExpressionSyntax expression)
     {
-      if (IsIllegalExpression(expression, out var illegalExpression))
+      if (SimpleIfStatementAnalyzer.IsIllegalExpression(expression, out var illegalExpression))
       {
         var splitExpression = new SplitExpression(illegalExpression!);
         splitExpression.RemoveRedundantTrivia();

@@ -65,24 +65,12 @@ namespace Infrastructure.Styles.Analyzer
       var orNode = context.Node;
       if (orNode.Parent == null)
         return;
+
       
-      if (!IsInsideIfStatement(orNode, out var ifNode))
+      if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(orNode, out var ifNode))
         return;
 
-      if(!IsLegalIfStatement(ifNode!))
-        CreateDiagnostic(orNode.GetLocation(), context);;
-    }
-
-    private static bool IsLegalIfStatement (IfStatementSyntax ifNode)
-    {
-      if (ifNode.Statement.IsKind(SyntaxKind.Block))
-      {
-        var blockNode = (BlockSyntax) ifNode.Statement;
-        if (IsInvalidStatement(blockNode.Statements.First()))
-          return false;
-      }
-
-      return !IsInvalidStatement(ifNode.Statement);
+      IsLegalIfNode(ifNode, context, orNode);
     }
 
     private static void AnalyzeOrPatternExpression (SyntaxNodeAnalysisContext context)
@@ -92,41 +80,26 @@ namespace Infrastructure.Styles.Analyzer
       
       if(patternNode?.Parent == null)
         return;
-      if (!IsInsideIfStatement(patternNode, out var ifNode)) return;
-      IsLegalIfStatement(ifNode!);
+      
+      if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(patternNode, out var ifNode)) 
+        return;
+      
+      IsLegalIfNode(ifNode, context, orNode);
     }
 
-    private static bool IsInvalidStatement (StatementSyntax statement)
+    private static void IsLegalIfNode (IfStatementSyntax? ifNode, SyntaxNodeAnalysisContext context, SyntaxNode orNode)
     {
-      return InvalidStatements.Any(statement.IsKind);
+      var ifStatementAnalyzer = new SimpleIfStatementAnalyzer(InvalidStatements);
+      if (ifStatementAnalyzer.IsLegalIfStatement(ifNode!))
+        return;
+
+      CreateDiagnostic(context, orNode.GetLocation());
     }
 
-    private static void CreateDiagnostic (Location location, SyntaxNodeAnalysisContext context)
+    private static void CreateDiagnostic (SyntaxNodeAnalysisContext context, Location location)
     {
       var diagnostic = Diagnostic.Create(Rule, location);
       context.ReportDiagnostic(diagnostic);
-    }
-
-    public static bool IsInsideIfStatement (SyntaxNode node, out IfStatementSyntax? ifParent)
-    {
-      if (node.Parent == null)
-      {
-        ifParent = null;
-        return false;
-      }
-
-      var parent = node.Parent;
-      ifParent = parent as IfStatementSyntax;
-      if (ifParent != null)
-        return true;
-
-      if (parent.IsKind(SyntaxKind.ParenthesizedExpression))
-      {
-        ifParent = parent.Parent as IfStatementSyntax;
-        if (ifParent != null)
-          return true;
-      }
-      return false;
     }
   }
 }
