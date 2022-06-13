@@ -114,6 +114,28 @@ namespace N
           RMSYN1102SeparateExitConditionsAnalyzer.Message),
         code);
     }
+    
+    [Test]
+    public void Analyze_ORedExitConditionWithReturnStatementInParenthesis_InValid ()
+    {
+        var code = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            if((↓1 > 2 || 2 > 1))
+                return;
+        }
+    }
+}";
+        RoslynAssert.Diagnostics(Analyzer,
+            ExpectedDiagnostic.Create(RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
+                RMSYN1102SeparateExitConditionsAnalyzer.Message),
+            code);
+    }
 
     [Test]
     public void Analyze_ANDandORExitConditionWithReturnStatement_InValid ()

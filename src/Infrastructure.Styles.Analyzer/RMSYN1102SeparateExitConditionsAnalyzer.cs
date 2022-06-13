@@ -66,11 +66,13 @@ namespace Infrastructure.Styles.Analyzer
     private static void AnalyzeLogicalOrExpression (SyntaxNodeAnalysisContext context)
     {
       var orNode = context.Node;
-
-      if (orNode.Parent is not IfStatementSyntax ifNode)
+      if (orNode.Parent == null)
+        return;
+      
+      if (!IsImmediateParentOrParentsParentIfStatement(orNode, out var ifNode))
         return;
 
-      AnalyzeIfStatement(context, ifNode, orNode.GetLocation());
+      AnalyzeIfStatement(context, ifNode!, orNode.GetLocation());
     }
 
     private static void AnalyzeIfStatement (SyntaxNodeAnalysisContext context, IfStatementSyntax ifNode,
@@ -79,7 +81,8 @@ namespace Infrastructure.Styles.Analyzer
       if (ifNode.Statement.IsKind(SyntaxKind.Block))
       {
         var blockNode = (BlockSyntax) ifNode.Statement;
-        if (IsInvalidStatement(blockNode.Statements.First())) CreateDiagnostic(orPosition, context);
+        if (IsInvalidStatement(blockNode.Statements.First())) 
+          CreateDiagnostic(orPosition, context);
       }
       else if (IsInvalidStatement(ifNode.Statement))
       {
@@ -90,12 +93,14 @@ namespace Infrastructure.Styles.Analyzer
     private static void AnalyzeOrPatternExpression (SyntaxNodeAnalysisContext context)
     {
       var orNode = context.Node;
+      if (orNode.Parent == null)
+        return;
       var patternNode = orNode.Parent;
-      if (patternNode == null) return;
-
-      var ifNode = patternNode.Parent;
-      if (!ifNode.IsKind(SyntaxKind.IfStatement)) return;
-      AnalyzeIfStatement(context, (IfStatementSyntax) ifNode, orNode.GetLocation());
+      
+      if(patternNode.Parent == null)
+        return;
+      if (!IsImmediateParentOrParentsParentIfStatement(patternNode, out var ifNode)) return;
+      AnalyzeIfStatement(context, ifNode!, orNode.GetLocation());
     }
 
     private static bool IsInvalidStatement (StatementSyntax statement)
@@ -107,6 +112,29 @@ namespace Infrastructure.Styles.Analyzer
     {
       var diagnostic = Diagnostic.Create(Rule, location);
       context.ReportDiagnostic(diagnostic);
+    }
+
+    public static bool IsImmediateParentOrParentsParentIfStatement (SyntaxNode node, out IfStatementSyntax? ifParent)
+    {
+      if (node.Parent == null)
+      {
+        ifParent = null;
+        return false;
+      }
+
+      var parent = node.Parent;
+      ifParent = parent as IfStatementSyntax;
+      if (ifParent != null)
+        return true;
+
+      if (parent.IsKind(SyntaxKind.ParenthesizedExpression))
+      {
+        ifParent = parent.Parent as IfStatementSyntax;
+        if (ifParent != null)
+          return true;
+      }
+      
+      return false;
     }
   }
 }
