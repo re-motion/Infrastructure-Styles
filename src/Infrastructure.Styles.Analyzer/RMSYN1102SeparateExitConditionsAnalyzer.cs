@@ -18,13 +18,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Infrastructure.Styles.Analyzer
 {
@@ -72,35 +69,31 @@ namespace Infrastructure.Styles.Analyzer
       if (!IsInsideIfStatement(orNode, out var ifNode))
         return;
 
-      AnalyzeIfStatement(context, ifNode!, orNode.GetLocation());
+      if(!IsLegalIfStatement(ifNode!))
+        CreateDiagnostic(orNode.GetLocation(), context);;
     }
 
-    private static void AnalyzeIfStatement (SyntaxNodeAnalysisContext context, IfStatementSyntax ifNode,
-      Location orPosition)
+    private static bool IsLegalIfStatement (IfStatementSyntax ifNode)
     {
       if (ifNode.Statement.IsKind(SyntaxKind.Block))
       {
         var blockNode = (BlockSyntax) ifNode.Statement;
-        if (IsInvalidStatement(blockNode.Statements.First())) 
-          CreateDiagnostic(orPosition, context);
+        if (IsInvalidStatement(blockNode.Statements.First()))
+          return false;
       }
-      else if (IsInvalidStatement(ifNode.Statement))
-      {
-        CreateDiagnostic(orPosition, context);
-      }
+
+      return !IsInvalidStatement(ifNode.Statement);
     }
 
     private static void AnalyzeOrPatternExpression (SyntaxNodeAnalysisContext context)
     {
       var orNode = context.Node;
-      if (orNode.Parent == null)
-        return;
       var patternNode = orNode.Parent;
       
-      if(patternNode.Parent == null)
+      if(patternNode?.Parent == null)
         return;
       if (!IsInsideIfStatement(patternNode, out var ifNode)) return;
-      AnalyzeIfStatement(context, ifNode!, orNode.GetLocation());
+      IsLegalIfStatement(ifNode!);
     }
 
     private static bool IsInvalidStatement (StatementSyntax statement)
@@ -133,7 +126,6 @@ namespace Infrastructure.Styles.Analyzer
         if (ifParent != null)
           return true;
       }
-      
       return false;
     }
   }
