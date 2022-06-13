@@ -77,23 +77,70 @@ namespace Infrastructure.Styles.Analyzer
     private static SyntaxNode ReplaceIfStatement (SyntaxNode syntaxRoot, TextSpan diagnosticSpan)
     {
       var illegalExpression = syntaxRoot.FindNode(diagnosticSpan);
-      
 
-      RMSYN1102SeparateExitConditionsAnalyzer.IsImmediateParentOrParentsParentIfStatement(illegalExpression,
-        out var ifStatement);
+      if(!RMSYN1102SeparateExitConditionsAnalyzer.IsInsideIfStatement(illegalExpression, out var ifStatement))
+        return syntaxRoot;
 
       if (ifStatement == null)
         return syntaxRoot;
 
-      var syntaxNodes = new List<SyntaxNode>();
-      FillSyntaxNodeListWithProperIfStatementsFromOrExpression(syntaxNodes, ifStatement, (ExpressionSyntax) illegalExpression);
-
-      var newRoot = syntaxRoot.ReplaceNode(ifStatement, syntaxNodes);
-
-      return newRoot;
+      var syntaxWrapper = CreateSyntaxWrapper(ifStatement);
+      
+      var syntaxNodes = new List<IfAndElseIfStatementSyntaxWrapper>();
+      FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, syntaxWrapper.Copy(), (ExpressionSyntax) illegalExpression);
+      
+      return BuildNewRoot(syntaxRoot, syntaxWrapper, syntaxNodes);
     }
 
-    private static SplitExpressions SplitOrSyntax (ExpressionSyntax expression)
+    private static IfAndElseIfStatementSyntaxWrapper CreateSyntaxWrapper (IfStatementSyntax ifStatement)
+    {
+      IfAndElseIfStatementSyntaxWrapper blueprint;
+      if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause))
+      {
+        blueprint = new IfAndElseIfStatementSyntaxWrapper(ifStatement.Parent);
+      }
+      else
+      {
+        blueprint = new IfAndElseIfStatementSyntaxWrapper(ifStatement);
+      }
+
+      return blueprint;
+    }
+
+    private static SyntaxNode BuildNewRoot (SyntaxNode oldRoot,
+      IfAndElseIfStatementSyntaxWrapper statementSyntaxWrapper, List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes)
+    {
+      if (statementSyntaxWrapper.IsIfStatement())
+      {
+        return oldRoot.ReplaceNode(statementSyntaxWrapper.IfOrElseIfStatement, syntaxNodes.Select(s => s.IfOrElseIfStatement));
+      }
+      else if (statementSyntaxWrapper.IsElseClause())
+      {
+        return BuildNewElseClauseRoot(oldRoot, syntaxNodes, statementSyntaxWrapper);
+      }
+
+      throw new InvalidOperationException(
+        $"StatementSyntaxWrapper did not hold an else clause or if statement, type of item held was '{statementSyntaxWrapper.IfOrElseIfStatement.GetType()}'");
+    }
+
+    private static SyntaxNode BuildNewElseClauseRoot (SyntaxNode oldRoot, List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes, IfAndElseIfStatementSyntaxWrapper statementSyntaxWrapper)
+    {
+      var tempElseClause = syntaxNodes.Last();
+      while (syntaxNodes.Count > 1)
+      {
+        syntaxNodes.RemoveAt(syntaxNodes.Count - 1);
+        var tempParentElseClause = syntaxNodes.Last();
+        
+        tempParentElseClause.WithElseClause((ElseClauseSyntax) tempElseClause.IfOrElseIfStatement);
+        tempElseClause = tempParentElseClause;
+        
+      }
+
+      return oldRoot.ReplaceNode(statementSyntaxWrapper.IfOrElseIfStatement, tempElseClause.IfOrElseIfStatement);
+    }
+
+
+    private static SplitExpressions SplitExpression (ExpressionSyntax expression)
     {
       if (expression.IsKind(SyntaxKind.LogicalOrExpression))
       {
@@ -126,24 +173,21 @@ namespace Infrastructure.Styles.Analyzer
       illegalExpression = null;
       return false;
     }
-
-    private static void FillSyntaxNodeListWithProperIfStatementsFromOrExpression (List<SyntaxNode> syntaxNodes, IfStatementSyntax ifBlueprint, ExpressionSyntax expression)
+    
+    private static void FillSyntaxNodeListWithProperStatementsFromOrExpression (List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes, IfAndElseIfStatementSyntaxWrapper blueprint,
+      ExpressionSyntax expression)
     {
-      while (true)
+      if (IsIllegalExpression(expression, out var illegalExpression))
       {
-        if (IsIllegalExpression(expression, out var illegalExpression))
-        {
-          var splitExpression = SplitOrSyntax(illegalExpression!);
-          splitExpression = RemoveRedundantTrivia(splitExpression);
-          FillSyntaxNodeListWithProperIfStatementsFromOrExpression(syntaxNodes, ifBlueprint, splitExpression.left);
-          expression = splitExpression.right;
-          continue;
-        }
-
-        var nextIfStatement = ifBlueprint.WithCondition(expression);
-        syntaxNodes.Add(nextIfStatement);
-        break;
+        var splitExpression = SplitExpression(illegalExpression!);
+        splitExpression = RemoveRedundantTrivia(splitExpression);
+        FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, blueprint, splitExpression.left);
+        FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, blueprint, splitExpression.right);
+        return;
       }
+
+      blueprint.WithCondition(expression);
+      syntaxNodes.Add(blueprint.Copy());
     }
 
     private static SplitExpressions RemoveRedundantTrivia (SplitExpressions splitExpression)

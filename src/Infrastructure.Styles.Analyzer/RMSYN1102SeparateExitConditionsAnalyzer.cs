@@ -69,7 +69,7 @@ namespace Infrastructure.Styles.Analyzer
       if (orNode.Parent == null)
         return;
       
-      if (!IsImmediateParentOrParentsParentIfStatement(orNode, out var ifNode))
+      if (!IsInsideIfStatement(orNode, out var ifNode))
         return;
 
       AnalyzeIfStatement(context, ifNode!, orNode.GetLocation());
@@ -99,7 +99,7 @@ namespace Infrastructure.Styles.Analyzer
       
       if(patternNode.Parent == null)
         return;
-      if (!IsImmediateParentOrParentsParentIfStatement(patternNode, out var ifNode)) return;
+      if (!IsInsideIfStatement(patternNode, out var ifNode)) return;
       AnalyzeIfStatement(context, ifNode!, orNode.GetLocation());
     }
 
@@ -114,7 +114,7 @@ namespace Infrastructure.Styles.Analyzer
       context.ReportDiagnostic(diagnostic);
     }
 
-    public static bool IsImmediateParentOrParentsParentIfStatement (SyntaxNode node, out IfStatementSyntax? ifParent)
+    public static bool IsInsideIfStatement (SyntaxNode node, out IfStatementSyntax? ifParent)
     {
       if (node.Parent == null)
       {

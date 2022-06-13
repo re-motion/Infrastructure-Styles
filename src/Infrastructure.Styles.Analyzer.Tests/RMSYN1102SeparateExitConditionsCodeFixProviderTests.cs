@@ -94,5 +94,43 @@ namespace N
 }";
         RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
     }
+    
+    [Test]
+    public void CodeFix_ComplexConditionElseIfWithReturnStatement_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            if(1 > 2 && 3 > 4)
+                return;
+            else if(↓2 > 1 || 4 > 5)
+                return;
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            if(1 > 2 && 3 > 4)
+                return;
+            else if(2 > 1)
+                return;
+            else if(4 > 5)
+                return;
+        }
+    }
+}";
+        RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
   }
 }
