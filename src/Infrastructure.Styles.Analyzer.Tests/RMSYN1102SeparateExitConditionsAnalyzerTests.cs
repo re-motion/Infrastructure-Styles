@@ -23,7 +23,8 @@ namespace Infrastructure.Styles.Analyzer.Tests
   [TestFixture]
   public class RMSYN1102SeparateExitConditionsAnalyzerTests
   {
-    private static readonly RMSYN1102SeparateExitConditionsAnalyzer Analyzer = new();
+    private static readonly RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer Analyzer =
+      new();
 
     [Test]
     public void Analyze_WithExitConditionsInSeparateIFStatements_Valid ()
@@ -65,8 +66,9 @@ namespace N
     }
 }";
       RoslynAssert.Diagnostics(Analyzer,
-        ExpectedDiagnostic.Create(RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
-          RMSYN1102SeparateExitConditionsAnalyzer.Message),
+        ExpectedDiagnostic.Create(
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.Message),
         code);
     }
 
@@ -110,15 +112,16 @@ namespace N
     }
 }";
       RoslynAssert.Diagnostics(Analyzer,
-        ExpectedDiagnostic.Create(RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
-          RMSYN1102SeparateExitConditionsAnalyzer.Message),
+        ExpectedDiagnostic.Create(
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.Message),
         code);
     }
-    
+
     [Test]
     public void Analyze_ORedExitConditionWithReturnStatementInParenthesis_InValid ()
     {
-        var code = @"
+      var code = @"
 namespace N
 {
     class C
@@ -131,10 +134,11 @@ namespace N
         }
     }
 }";
-        RoslynAssert.Diagnostics(Analyzer,
-            ExpectedDiagnostic.Create(RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
-                RMSYN1102SeparateExitConditionsAnalyzer.Message),
-            code);
+      RoslynAssert.Diagnostics(Analyzer,
+        ExpectedDiagnostic.Create(
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.Message),
+        code);
     }
 
     [Test]
@@ -154,8 +158,9 @@ namespace N
     }
 }";
       RoslynAssert.Diagnostics(Analyzer,
-        ExpectedDiagnostic.Create(RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
-          RMSYN1102SeparateExitConditionsAnalyzer.Message),
+        ExpectedDiagnostic.Create(
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.Message),
         code);
     }
 
@@ -218,15 +223,16 @@ namespace N
     }
 }";
       RoslynAssert.Diagnostics(Analyzer,
-        ExpectedDiagnostic.Create(RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
-          RMSYN1102SeparateExitConditionsAnalyzer.Message),
+        ExpectedDiagnostic.Create(
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.Message),
         code);
     }
-    
+
     [Test]
     public void Analyze_IfWithoutORPatternExitCondition_Valid ()
     {
-        var code = @"
+      var code = @"
 namespace N
 {
     class C
@@ -242,7 +248,7 @@ namespace N
         }
     }
 }";
-        RoslynAssert.Valid(Analyzer, code);
+      RoslynAssert.Valid(Analyzer, code);
     }
 
     [Test]
@@ -263,8 +269,9 @@ namespace N
     }
 }";
       RoslynAssert.Diagnostics(Analyzer,
-        ExpectedDiagnostic.Create(RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
-          RMSYN1102SeparateExitConditionsAnalyzer.Message),
+        ExpectedDiagnostic.Create(
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.Message),
         code);
     }
 
@@ -288,8 +295,9 @@ namespace N
     }
 }";
       RoslynAssert.Diagnostics(Analyzer,
-        ExpectedDiagnostic.Create(RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
-          RMSYN1102SeparateExitConditionsAnalyzer.Message),
+        ExpectedDiagnostic.Create(
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.DiagnosticId,
+          RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer.Message),
         code);
     }
   }

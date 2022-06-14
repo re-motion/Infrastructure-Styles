@@ -15,23 +15,22 @@
 // along with re-motion; if not, see http://www.gnu.org/licenses.
 
 using System;
-using System.Linq.Expressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Infrastructure.Styles.Analyzer
+namespace Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer
 {
   public class IfAndElseIfStatementSyntaxWrapper
   {
     public SyntaxNode IfOrElseIfStatement { get; private set; }
-    public ElseClauseSyntax? ElseClause { get; private set; }
-    public bool HasElseClause { get; private set; }
+    public ElseClauseSyntax? ElseClause { get; }
+    public bool HasElseClause { get; }
 
     public IfAndElseIfStatementSyntaxWrapper (SyntaxNode ifOrElseIfStatement, SyntaxNode? elseClause)
     {
       if (ifOrElseIfStatement is not IfStatementSyntax and not ElseClauseSyntax)
-        throw new ArgumentException("Syntaxnode must be of kind IfStatementSyntax or ElseClauseSyntax");
+        throw new ArgumentException("SyntaxNode must be of kind IfStatementSyntax or ElseClauseSyntax");
       IfOrElseIfStatement = ifOrElseIfStatement;
       if (elseClause != null && elseClause.IsKind(SyntaxKind.ElseClause))
       {
@@ -65,7 +64,7 @@ namespace Infrastructure.Styles.Analyzer
     {
       return new IfAndElseIfStatementSyntaxWrapper(IfOrElseIfStatement, ElseClause);
     }
-    
+
     public void WithCondition (SyntaxNode node)
     {
       var expression = (node as ExpressionSyntax)!;
@@ -83,7 +82,7 @@ namespace Infrastructure.Styles.Analyzer
       }
     }
 
-    public void WithElseClause (ElseClauseSyntax elseClause)
+    public void WithElse (ElseClauseSyntax elseClause)
     {
       if (IsIfStatement())
       {
@@ -99,21 +98,19 @@ namespace Infrastructure.Styles.Analyzer
       }
     }
 
-    public bool IsIfStatement ()
+    private bool IsIfStatement ()
     {
       return IfOrElseIfStatement.IsKind(SyntaxKind.IfStatement);
     }
 
-    public bool IsElseClause ()
+    private bool IsElseClause ()
     {
       return IfOrElseIfStatement.IsKind(SyntaxKind.ElseClause);
     }
 
     public bool ElseClauseHasIfStatement ()
     {
-      if (ElseClause == null)
-        return false;
-      return ElseClause.Statement.IsKind(SyntaxKind.IfStatement);
+      return ElseClause != null && ElseClause.Statement.IsKind(SyntaxKind.IfStatement);
     }
 
     public void ReintroduceParentElseClause ()
@@ -125,7 +122,7 @@ namespace Infrastructure.Styles.Analyzer
         return;
 
       IfOrElseIfStatement = IfOrElseIfStatement.WithLeadingTrivia(SyntaxTriviaList.Empty);
-      var elseClause = ElseClause!.WithStatement((StatementSyntax)IfOrElseIfStatement);
+      var elseClause = ElseClause!.WithStatement((StatementSyntax) IfOrElseIfStatement);
       IfOrElseIfStatement = elseClause;
     }
   }

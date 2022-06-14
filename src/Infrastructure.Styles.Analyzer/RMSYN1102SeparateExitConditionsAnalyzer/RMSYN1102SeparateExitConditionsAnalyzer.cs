@@ -17,13 +17,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Infrastructure.Styles.Analyzer
+namespace Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer
 {
   [DiagnosticAnalyzer(LanguageNames.CSharp)]
   public class RMSYN1102SeparateExitConditionsAnalyzer : DiagnosticAnalyzer
@@ -40,7 +39,7 @@ namespace Infrastructure.Styles.Analyzer
       SyntaxKind.ReturnStatement
     };
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
       DiagnosticId,
       Title,
       Message,
@@ -66,11 +65,11 @@ namespace Infrastructure.Styles.Analyzer
       if (orNode.Parent == null)
         return;
 
-      
+
       if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(orNode, out var ifNode))
         return;
 
-      if(!IsLegalIfNode(ifNode, context, orNode))
+      if (!IsLegalIfNode(ifNode, context, orNode))
         CreateDiagnostic(context, orNode.GetLocation());
     }
 
@@ -78,14 +77,14 @@ namespace Infrastructure.Styles.Analyzer
     {
       var orNode = context.Node;
       var patternNode = orNode.Parent;
-      
-      if(patternNode?.Parent == null)
+
+      if (patternNode?.Parent == null)
         return;
-      
-      if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(patternNode, out var ifNode)) 
+
+      if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(patternNode, out var ifNode))
         return;
-      
-      if(!IsLegalIfNode(ifNode, context, orNode))
+
+      if (!IsLegalIfNode(ifNode, context, orNode))
         CreateDiagnostic(context, orNode.GetLocation());
     }
 

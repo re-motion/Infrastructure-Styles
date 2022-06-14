@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Infrastructure.Styles.Analyzer
+namespace Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer
 {
   public class SimpleIfStatementAnalyzer
   {
@@ -30,14 +30,12 @@ namespace Infrastructure.Styles.Analyzer
     {
       _invalidStatements = invalidStatements;
     }
-    
-    public static bool IsInsideIfStatement (SyntaxNode node, out IfStatementSyntax? ifParent)
+
+    public static bool
+      IsInsideIfStatement (SyntaxNode node, out IfStatementSyntax? ifParent)
     {
-      if (node.IsKind(SyntaxKind.OrPattern))
-      {
-        return IsInsideIfStatement(node.Parent!, out ifParent);
-      }
-      
+      if (node.IsKind(SyntaxKind.OrPattern)) return IsInsideIfStatement(node.Parent!, out ifParent);
+
       if (node.Parent == null)
       {
         ifParent = null;
@@ -55,6 +53,7 @@ namespace Infrastructure.Styles.Analyzer
         if (ifParent != null)
           return true;
       }
+
       return false;
     }
 
@@ -84,6 +83,7 @@ namespace Infrastructure.Styles.Analyzer
         if (IsInvalidStatement(blockNode.Statements.First()))
           return false;
       }
+
       return !IsInvalidStatement(ifNode.Statement);
     }
 

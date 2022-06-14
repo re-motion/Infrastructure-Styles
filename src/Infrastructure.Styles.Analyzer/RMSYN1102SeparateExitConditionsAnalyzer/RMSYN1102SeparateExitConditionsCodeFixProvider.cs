@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with re-motion; if not, see http://www.gnu.org/licenses.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Infrastructure.Styles.Analyzer.Infrastructure;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -28,7 +26,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Infrastructure.Styles.Analyzer
+namespace Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer
 {
   public class RMSYN1102SeparateExitConditionsCodeFixProvider : CodeFixProvider
   {
@@ -64,34 +62,38 @@ namespace Infrastructure.Styles.Analyzer
 
     private static SyntaxNode ReplaceIllegalStatement (SyntaxNode syntaxRoot, TextSpan diagnosticSpan)
     {
-      var illegalExpression = syntaxRoot.FindNode(diagnosticSpan);
-
-      illegalExpression = FindIllegalParentStatement(illegalExpression);
-      
-      if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(illegalExpression, out var ifStatement))
+      IllegalExpression illegalExpression;
+      try
+      {
+        illegalExpression = new IllegalExpression(syntaxRoot.FindNode(diagnosticSpan));
+      }
+      catch
+      {
         return syntaxRoot;
+      }
 
-      if (ifStatement == null)
-        return syntaxRoot;
-
-      var syntaxWrapper = CreateSyntaxWrapper(ifStatement);
+      var syntaxWrapper = CreateSyntaxWrapper(illegalExpression.IfStatement);
       var syntaxWrapperWithoutElse = syntaxWrapper.Copy();
       syntaxWrapperWithoutElse.RemoveElseClause();
 
       var syntaxNodes = new List<IfAndElseIfStatementSyntaxWrapper>();
-      
-      FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, syntaxWrapperWithoutElse.Copy(),
-        illegalExpression);
+
+      FillSyntaxNodeListWithStatements(syntaxNodes, syntaxWrapperWithoutElse.Copy(),
+        illegalExpression.Node);
 
       if (syntaxWrapper.HasElseClause && syntaxWrapper.ElseClauseHasIfStatement())
-      {
-        var heldIfStatement = syntaxWrapper.ElseClause!.Statement as IfStatementSyntax;
-        var elseClauseSyntaxWrapper = CreateSyntaxWrapper(heldIfStatement!);
-        FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, elseClauseSyntaxWrapper, heldIfStatement!.Condition );
-        ReintroduceParentElseClauses(syntaxNodes);
-      }
-      
+        HandleElseClauses(syntaxWrapper, syntaxNodes);
+
       return BuildRoot(syntaxRoot, syntaxNodes, syntaxWrapper);
+    }
+
+    private static void HandleElseClauses (IfAndElseIfStatementSyntaxWrapper syntaxWrapper,
+      List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes)
+    {
+      var heldIfStatement = syntaxWrapper.ElseClause!.Statement as IfStatementSyntax;
+      var elseClauseSyntaxWrapper = CreateSyntaxWrapper(heldIfStatement!);
+      FillSyntaxNodeListWithStatements(syntaxNodes, elseClauseSyntaxWrapper, heldIfStatement!.Condition);
+      ReintroduceParentElseClauses(syntaxNodes);
     }
 
     private static IfAndElseIfStatementSyntaxWrapper CreateSyntaxWrapper (IfStatementSyntax ifStatement)
@@ -108,42 +110,45 @@ namespace Infrastructure.Styles.Analyzer
     private static SyntaxNode BuildRoot (SyntaxNode oldRoot,
       List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes, IfAndElseIfStatementSyntaxWrapper oldNode)
     {
-      var tempElseClause = syntaxNodes.Last();        
+      BuildProperStatementList(syntaxNodes);
+
+      //ReplaceNode() can only replace an ifNode by a list if the list does not include else statements.
+      //Else if statements can only be in the list if it's count is 1
+      if (syntaxNodes.Count == 1)
+        return oldRoot.ReplaceNode(oldNode.IfOrElseIfStatement, syntaxNodes.First().IfOrElseIfStatement);
+      return oldRoot.ReplaceNode(oldNode.IfOrElseIfStatement,
+        syntaxNodes.Select(s => s.IfOrElseIfStatement));
+    }
+
+    private static void BuildProperStatementList (List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes)
+    {
+      var tempElseClause = syntaxNodes.Last();
       syntaxNodes.RemoveAt(syntaxNodes.Count - 1);
 
       while (syntaxNodes.Count > 0)
       {
-        if (tempElseClause.IfOrElseIfStatement.IsKind(SyntaxKind.IfStatement))
-        {
-          break;
-        }
+        if (tempElseClause.IfOrElseIfStatement.IsKind(SyntaxKind.IfStatement)) break;
+
         var tempParentElseClause = syntaxNodes.Last();
 
-        tempParentElseClause.WithElseClause((ElseClauseSyntax) tempElseClause.IfOrElseIfStatement);
+        tempParentElseClause.WithElse((ElseClauseSyntax) tempElseClause.IfOrElseIfStatement);
         tempElseClause = tempParentElseClause;
         syntaxNodes.RemoveAt(syntaxNodes.Count - 1);
-
       }
 
       syntaxNodes.Add(tempElseClause);
-      if (syntaxNodes.Count == 1)
-      {
-        return oldRoot.ReplaceNode(oldNode.IfOrElseIfStatement, syntaxNodes.First().IfOrElseIfStatement);
-      }
-      return oldRoot.ReplaceNode(oldNode.IfOrElseIfStatement,
-          syntaxNodes.Select(s => s.IfOrElseIfStatement));
     }
 
 
-    private static void FillSyntaxNodeListWithProperStatementsFromOrExpression (
+    private static void FillSyntaxNodeListWithStatements (
       List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes, IfAndElseIfStatementSyntaxWrapper blueprint,
       SyntaxNode expression)
     {
       if (SimpleIfStatementAnalyzer.IsIllegalExpression(expression, out var illegalExpression))
       {
         var splitExpression = new SplitExpression(illegalExpression!);
-        FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, blueprint, splitExpression.Left);
-        FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, blueprint, splitExpression.Right);
+        FillSyntaxNodeListWithStatements(syntaxNodes, blueprint, splitExpression.Left);
+        FillSyntaxNodeListWithStatements(syntaxNodes, blueprint, splitExpression.Right);
         return;
       }
 
@@ -155,27 +160,10 @@ namespace Infrastructure.Styles.Analyzer
     {
       foreach (var (syntaxNode, index) in syntaxNodes.Select((syntaxNode, i) => (syntaxNode, i)))
       {
-        if(index == 0)
+        if (index == 0)
           continue;
         syntaxNode.ReintroduceParentElseClause();
       }
-    }
-
-    private static SyntaxNode FindIllegalParentStatement (SyntaxNode node)
-    {
-      if(node.Parent.IsKind(SyntaxKind.IfStatement))
-      {
-        return node;
-      }
-      if (node.Parent.IsKind(SyntaxKind.IsPatternExpression))
-      {
-        return node;
-      }
-
-      if (node.Parent == null)
-        return node;
-      
-      return FindIllegalParentStatement(node.Parent);
     }
   }
 }

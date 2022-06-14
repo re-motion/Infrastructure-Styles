@@ -15,6 +15,7 @@
 // along with re-motion; if not, see http://www.gnu.org/licenses.
 
 using Gu.Roslyn.Asserts;
+using Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer;
 using NUnit.Framework;
 
 namespace Infrastructure.Styles.Analyzer.Tests
@@ -22,7 +23,9 @@ namespace Infrastructure.Styles.Analyzer.Tests
   [TestFixture]
   public class RMSYN1102SeparateExitConditionsCodeFixProviderTests
   {
-    private static readonly RMSYN1102SeparateExitConditionsAnalyzer Analyzer = new();
+    private static readonly RMSYN1102SeparateExitConditionsAnalyzer.RMSYN1102SeparateExitConditionsAnalyzer Analyzer =
+      new();
+
     private static readonly RMSYN1102SeparateExitConditionsCodeFixProvider CodeFixProvider = new();
 
     [Test]
@@ -58,11 +61,11 @@ namespace N
 }";
       RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
     }
-    
+
     [Test]
     public void CodeFix_ComplexConditionWithReturnStatement_CreatesProperIFStatements ()
     {
-        var before = @"
+      var before = @"
 namespace N
 {
     class C
@@ -75,7 +78,7 @@ namespace N
         }
     }
 }";
-        var after = @"
+      var after = @"
 namespace N
 {
     class C
@@ -92,13 +95,13 @@ namespace N
         }
     }
 }";
-        RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
     }
-    
+
     [Test]
     public void CodeFix_ComplexConditionElseIfWithReturnStatement_CreatesProperIFStatements ()
     {
-        var before = @"
+      var before = @"
 namespace N
 {
     class C
@@ -113,7 +116,7 @@ namespace N
         }
     }
 }";
-        var after = @"
+      var after = @"
 namespace N
 {
     class C
@@ -130,13 +133,13 @@ namespace N
         }
     }
 }";
-        RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
     }
-    
+
     [Test]
     public void CodeFix_ComplexConditionElseIfWithOrReturnStatement_CreatesProperIFStatements ()
     {
-        var before = @"
+      var before = @"
 namespace N
 {
     class C
@@ -151,7 +154,7 @@ namespace N
         }
     }
 }";
-        var after = @"
+      var after = @"
 namespace N
 {
     class C
@@ -170,13 +173,13 @@ namespace N
         }
     }
 }";
-        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+      RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
     }
-    
+
     [Test]
     public void CodeFix_SimpleOrPatterConditionWithReturnStatement_CreatesProperIFStatements ()
     {
-        var before = @"
+      var before = @"
 namespace N
 {
     class C
@@ -190,7 +193,7 @@ namespace N
         }
     }
 }";
-        var after = @"
+      var after = @"
 namespace N
 {
     class C
@@ -206,13 +209,13 @@ namespace N
         }
     }
 }";
-        RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+      RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
     }
-    
+
     [Test]
     public void CodeFix_ComplexOrPatterConditionWithReturnStatement_CreatesProperIFStatements ()
     {
-        var before = @"
+      var before = @"
 namespace N
 {
     class C
@@ -226,7 +229,7 @@ namespace N
         }
     }
 }";
-        var after = @"
+      var after = @"
 namespace N
 {
     class C
@@ -244,13 +247,13 @@ namespace N
         }
     }
 }";
-        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+      RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
     }
-    
+
     [Test]
     public void CodeFix_ElseIfOrPatternConditionWithReturnStatement_CreatesProperIFStatements ()
     {
-        var before = @"
+      var before = @"
 namespace N
 {
     class C
@@ -266,7 +269,7 @@ namespace N
         }
     }
 }";
-        var after = @"
+      var after = @"
 namespace N
 {
     class C
@@ -284,13 +287,13 @@ namespace N
         }
     }
 }";
-        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+      RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
     }
-    
+
     [Test]
     public void CodeFix_ElseIfOrPatternComplexConditionWithReturnStatement_CreatesProperIFStatements ()
     {
-        var before = @"
+      var before = @"
 namespace N
 {
     class C
@@ -306,7 +309,7 @@ namespace N
         }
     }
 }";
-        var after = @"
+      var after = @"
 namespace N
 {
     class C
@@ -326,7 +329,7 @@ namespace N
         }
     }
 }";
-        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+      RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
     }
   }
 }
