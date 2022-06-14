@@ -148,7 +148,7 @@ namespace N
 
         private void Main()
         {
-            if(↓(1 > 2 && true) || (2 > 1 && false))
+            if(↓(2 > 1 && true) || (2 > 1 && false))
                 return;
         }
     }
@@ -209,7 +209,8 @@ namespace N
 
         private void Main()
         {
-            if(false)
+            int a = 0;
+            if(a == 0)
                 return;
             else if(↓true || false)
                 return; 

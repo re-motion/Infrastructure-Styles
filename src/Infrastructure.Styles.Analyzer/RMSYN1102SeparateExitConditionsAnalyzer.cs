@@ -70,7 +70,8 @@ namespace Infrastructure.Styles.Analyzer
       if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(orNode, out var ifNode))
         return;
 
-      IsLegalIfNode(ifNode, context, orNode);
+      if(!IsLegalIfNode(ifNode, context, orNode))
+        CreateDiagnostic(context, orNode.GetLocation());
     }
 
     private static void AnalyzeOrPatternExpression (SyntaxNodeAnalysisContext context)
@@ -84,16 +85,14 @@ namespace Infrastructure.Styles.Analyzer
       if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(patternNode, out var ifNode)) 
         return;
       
-      IsLegalIfNode(ifNode, context, orNode);
+      if(!IsLegalIfNode(ifNode, context, orNode))
+        CreateDiagnostic(context, orNode.GetLocation());
     }
 
-    private static void IsLegalIfNode (IfStatementSyntax? ifNode, SyntaxNodeAnalysisContext context, SyntaxNode orNode)
+    private static bool IsLegalIfNode (IfStatementSyntax? ifNode, SyntaxNodeAnalysisContext context, SyntaxNode orNode)
     {
       var ifStatementAnalyzer = new SimpleIfStatementAnalyzer(InvalidStatements);
-      if (ifStatementAnalyzer.IsLegalIfStatement(ifNode!))
-        return;
-
-      CreateDiagnostic(context, orNode.GetLocation());
+      return ifStatementAnalyzer.IsLegalIfStatement(ifNode!);
     }
 
     private static void CreateDiagnostic (SyntaxNodeAnalysisContext context, Location location)
