@@ -121,8 +121,13 @@ namespace Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer
       if (!HasElseClause)
         return;
 
-      IfOrElseIfStatement = IfOrElseIfStatement.WithLeadingTrivia(SyntaxTriviaList.Empty);
-      var elseClause = ElseClause!.WithStatement((StatementSyntax) IfOrElseIfStatement);
+      var elseClause = ElseClause;
+      if (IfOrElseIfStatement.IsKind(SyntaxKind.IfStatement))
+      {
+        elseClause = elseClause!.WithElseKeyword(elseClause.ElseKeyword.WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.Space)));
+        IfOrElseIfStatement = IfOrElseIfStatement.WithLeadingTrivia(SyntaxTriviaList.Empty);
+      }
+      elseClause = elseClause!.WithStatement((StatementSyntax) IfOrElseIfStatement);
       IfOrElseIfStatement = elseClause;
     }
   }

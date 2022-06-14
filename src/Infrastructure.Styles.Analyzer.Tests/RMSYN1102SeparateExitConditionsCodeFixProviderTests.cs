@@ -39,7 +39,7 @@ namespace N
 
         private void Main()
         {
-            if(↓1 > 2 || 2 > 1)
+            if (↓1 > 2 || 2 > 1)
                 return;
         }
     }
@@ -52,9 +52,9 @@ namespace N
 
         private void Main()
         {
-            if(1 > 2)
+            if (1 > 2)
                 return;
-            if(2 > 1)
+            if (2 > 1)
                 return;
         }
     }
@@ -73,7 +73,7 @@ namespace N
 
         private void Main()
         {
-            if(↓(1 > 2 && 3 > 4) || (2 > 1 || 4 > 5))
+            if (↓(1 > 2 && 3 > 4) || (2 > 1 || 4 > 5))
                 return;
         }
     }
@@ -86,11 +86,11 @@ namespace N
 
         private void Main()
         {
-            if((1 > 2 && 3 > 4))
+            if ((1 > 2 && 3 > 4))
                 return;
-            if(2 > 1)
+            if (2 > 1)
                 return;
-            if(4 > 5)
+            if (4 > 5)
                 return;
         }
     }
@@ -109,9 +109,9 @@ namespace N
 
         private void Main()
         {
-            if(1 > 2 && 3 > 4)
+            if (1 > 2 && 3 > 4)
                 return;
-            else if(↓2 > 1 || 4 > 5)
+            else if (↓2 > 1 || 4 > 5)
                 return;
         }
     }
@@ -124,11 +124,11 @@ namespace N
 
         private void Main()
         {
-            if(1 > 2 && 3 > 4)
+            if (1 > 2 && 3 > 4)
                 return;
-            else if(2 > 1)
+            else if (2 > 1)
                 return;
-            else if(4 > 5)
+            else if (4 > 5)
                 return;
         }
     }
@@ -147,9 +147,9 @@ namespace N
 
         private void Main()
         {
-            if(↓1 > 2 || 3 > 4)
+            if (↓1 > 2 || 3 > 4)
                 return;
-            else if(↓2 > 1 || 4 > 5)
+            else if (↓2 > 1 || 4 > 5)
                 return;
         }
     }
@@ -162,13 +162,13 @@ namespace N
 
         private void Main()
         {
-            if(1 > 2)
+            if (1 > 2)
                 return;
-            else if(3 > 4)
+            else if (3 > 4)
                 return;
-            else if(2 > 1)
+            else if (2 > 1)
                 return;
-            else if(4 > 5)
+            else if (4 > 5)
                 return;
         }
     }
@@ -188,7 +188,7 @@ namespace N
         private void Main()
         {
             int a = 0;
-            if(a is ↓1 or 3)
+            if (a is ↓1 or 3)
                 return;
         }
     }
@@ -202,9 +202,9 @@ namespace N
         private void Main()
         {
             int a = 0;
-            if(a is 1)
+            if (a is 1)
                 return;
-            if(a is 3)
+            if (a is 3)
                 return;
         }
     }
@@ -224,7 +224,7 @@ namespace N
         private void Main()
         {
             int a = 0;
-            if(a is ↓1 or > 3 and > 4 or 2)
+            if (a is ↓1 or > 3 and > 4 or 2)
                 return;
         }
     }
@@ -238,11 +238,11 @@ namespace N
         private void Main()
         {
             int a = 0;
-            if(a is 1)
+            if (a is 1)
                 return;
-            if(a is > 3 and > 4)
+            if (a is > 3 and > 4)
                 return;
-            if(a is 2)
+            if (a is 2)
                 return;
         }
     }
@@ -262,7 +262,7 @@ namespace N
         private void Main()
         {
             int a = 0;
-            if(a is 3)
+            if (a is 3)
                 return;
             else if (a is ↓> 5 or < 1)
                 return;
@@ -278,7 +278,7 @@ namespace N
         private void Main()
         {
             int a = 0;
-            if(a is 3)
+            if (a is 3)
                 return;
             else if (a is > 5)
                 return;
@@ -302,7 +302,7 @@ namespace N
         private void Main()
         {
             int a = 0;
-            if(a is ↓3 or 4)
+            if (a is ↓3 or 4)
                 return;
             else if (a is ↓> 5 or < 1)
                 return;
@@ -318,9 +318,9 @@ namespace N
         private void Main()
         {
             int a = 0;
-            if(a is 3)
+            if (a is 3)
                 return;
-            else if(a is 4)
+            else if (a is 4)
                 return;
             else if (a is > 5)
                 return;
@@ -330,6 +330,148 @@ namespace N
     }
 }";
       RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+    }
+    
+    [Test]
+    public void CodeFix_SimpleOrPatterConditionWithElse_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if (a is ↓1 or 3)
+                return;
+            else
+            {
+                return;
+            }
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if (a is 1)
+                return;
+            else if (a is 3)
+                return;
+            else
+            {
+                return;
+            }
+        }
+    }
+}";
+        RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+    
+    [Test]
+    public void CodeFix_SimpleOrPatterConditionWithElseIncludingIFWithOr_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if (a is ↓1 or 3)
+                return;
+            else
+            {
+                if (a is ↓2 or 4)
+                    return;
+            }
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if (a is 1)
+                return;
+            else if (a is 3)
+                return;
+            else
+            {
+                if (a is 2)
+                    return;
+                if (a is 4)
+                    return;
+            }
+        }
+    }
+}";
+        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+    }
+    
+    [Test]
+    public void CodeFix_SimpleOrPatterConditionWithElseAndElseIfWithOr_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if (a is ↓1 or 3)
+                return;
+            else if (a is ↓4 or 5)
+                return;
+            else
+            {
+                return;
+            }
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if (a is 1)
+                return;
+            else if (a is 3)
+                return;
+            else if (a is 4)
+                return;
+            else if (a is 5)
+                return;
+            else
+            {
+                return;
+            }
+        }
+    }
+}";
+        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
     }
   }
 }

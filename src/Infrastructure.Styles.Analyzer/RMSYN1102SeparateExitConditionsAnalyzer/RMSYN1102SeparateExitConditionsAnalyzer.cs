@@ -39,7 +39,7 @@ namespace Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer
       SyntaxKind.ReturnStatement
     };
 
-    private static readonly DiagnosticDescriptor Rule = new(
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
       DiagnosticId,
       Title,
       Message,

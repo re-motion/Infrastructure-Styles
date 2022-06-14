@@ -73,15 +73,18 @@ namespace Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer
       }
 
       var syntaxWrapper = CreateSyntaxWrapper(illegalExpression.IfStatement);
+      
+      //need to remove else otherwise there are else clauses after every if and that's not desirable
       var syntaxWrapperWithoutElse = syntaxWrapper.Copy();
       syntaxWrapperWithoutElse.RemoveElseClause();
 
       var syntaxNodes = new List<IfAndElseIfStatementSyntaxWrapper>();
 
-      FillSyntaxNodeListWithStatements(syntaxNodes, syntaxWrapperWithoutElse.Copy(),
+      FillSyntaxNodeListWithStatements(syntaxNodes, syntaxWrapperWithoutElse,
         illegalExpression.Node);
 
-      if (syntaxWrapper.HasElseClause && syntaxWrapper.ElseClauseHasIfStatement())
+      //time to handle the previously ignored else clauses
+      if (syntaxWrapper.HasElseClause)
         HandleElseClauses(syntaxWrapper, syntaxNodes);
 
       return BuildRoot(syntaxRoot, syntaxNodes, syntaxWrapper);
@@ -90,9 +93,17 @@ namespace Infrastructure.Styles.Analyzer.RMSYN1102SeparateExitConditionsAnalyzer
     private static void HandleElseClauses (IfAndElseIfStatementSyntaxWrapper syntaxWrapper,
       List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes)
     {
-      var heldIfStatement = syntaxWrapper.ElseClause!.Statement as IfStatementSyntax;
-      var elseClauseSyntaxWrapper = CreateSyntaxWrapper(heldIfStatement!);
-      FillSyntaxNodeListWithStatements(syntaxNodes, elseClauseSyntaxWrapper, heldIfStatement!.Condition);
+      if (syntaxWrapper.ElseClauseHasIfStatement())
+      {
+        var heldIfStatement = syntaxWrapper.ElseClause!.Statement as IfStatementSyntax;
+        var elseClauseSyntaxWrapper = CreateSyntaxWrapper(heldIfStatement!);
+        FillSyntaxNodeListWithStatements(syntaxNodes, elseClauseSyntaxWrapper, heldIfStatement!.Condition);
+      }
+      else
+      {
+        syntaxNodes.Add(new IfAndElseIfStatementSyntaxWrapper(syntaxWrapper.ElseClause!, null));
+      }
+
       ReintroduceParentElseClauses(syntaxNodes);
     }
 
