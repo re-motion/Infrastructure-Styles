@@ -134,6 +134,46 @@ namespace N
     }
     
     [Test]
+    public void CodeFix_ComplexConditionElseIfWithOrReturnStatement_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            if(↓1 > 2 || 3 > 4)
+                return;
+            else if(↓2 > 1 || 4 > 5)
+                return;
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            if(1 > 2)
+                return;
+            else if(3 > 4)
+                return;
+            else if(2 > 1)
+                return;
+            else if(4 > 5)
+                return;
+        }
+    }
+}";
+        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+    }
+    
+    [Test]
     public void CodeFix_SimpleOrPatterConditionWithReturnStatement_CreatesProperIFStatements ()
     {
         var before = @"
@@ -200,6 +240,88 @@ namespace N
             if(a is > 3 and > 4)
                 return;
             if(a is 2)
+                return;
+        }
+    }
+}";
+        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+    }
+    
+    [Test]
+    public void CodeFix_ElseIfOrPatternConditionWithReturnStatement_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if(a is 3)
+                return;
+            else if (a is ↓> 5 or < 1)
+                return;
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if(a is 3)
+                return;
+            else if (a is > 5)
+                return;
+            else if (a is < 1)
+                return;
+        }
+    }
+}";
+        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+    }
+    
+    [Test]
+    public void CodeFix_ElseIfOrPatternComplexConditionWithReturnStatement_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if(a is ↓3 or 4)
+                return;
+            else if (a is ↓> 5 or < 1)
+                return;
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if(a is 3)
+                return;
+            else if(a is 4)
+                return;
+            else if (a is > 5)
+                return;
+            else if (a is < 1)
                 return;
         }
     }

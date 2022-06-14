@@ -75,54 +75,63 @@ namespace Infrastructure.Styles.Analyzer
         return syntaxRoot;
 
       var syntaxWrapper = CreateSyntaxWrapper(ifStatement);
+      var syntaxWrapperWithoutElse = syntaxWrapper.Copy();
+      syntaxWrapperWithoutElse.RemoveElseClause();
 
       var syntaxNodes = new List<IfAndElseIfStatementSyntaxWrapper>();
       
-      FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, syntaxWrapper.Copy(),
+      FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, syntaxWrapperWithoutElse.Copy(),
         illegalExpression);
 
-      return BuildNewRoot(syntaxRoot, syntaxWrapper, syntaxNodes);
+      if (syntaxWrapper.HasElseClause && syntaxWrapper.ElseClauseHasIfStatement())
+      {
+        var heldIfStatement = syntaxWrapper.ElseClause!.Statement as IfStatementSyntax;
+        var elseClauseSyntaxWrapper = CreateSyntaxWrapper(heldIfStatement!);
+        FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, elseClauseSyntaxWrapper, heldIfStatement!.Condition );
+        ReintroduceParentElseClauses(syntaxNodes);
+      }
+      
+      return BuildRoot(syntaxRoot, syntaxNodes, syntaxWrapper);
     }
 
     private static IfAndElseIfStatementSyntaxWrapper CreateSyntaxWrapper (IfStatementSyntax ifStatement)
     {
       IfAndElseIfStatementSyntaxWrapper blueprint;
       if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause))
-        blueprint = new IfAndElseIfStatementSyntaxWrapper(ifStatement.Parent);
+        blueprint = new IfAndElseIfStatementSyntaxWrapper(ifStatement.Parent, ifStatement.Else);
       else
-        blueprint = new IfAndElseIfStatementSyntaxWrapper(ifStatement);
+        blueprint = new IfAndElseIfStatementSyntaxWrapper(ifStatement, ifStatement.Else);
 
       return blueprint;
     }
 
-    private static SyntaxNode BuildNewRoot (SyntaxNode oldRoot,
-      IfAndElseIfStatementSyntaxWrapper statementSyntaxWrapper, List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes)
+    private static SyntaxNode BuildRoot (SyntaxNode oldRoot,
+      List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes, IfAndElseIfStatementSyntaxWrapper oldNode)
     {
-      if (statementSyntaxWrapper.IsIfStatement())
-        return oldRoot.ReplaceNode(statementSyntaxWrapper.IfOrElseIfStatement,
-          syntaxNodes.Select(s => s.IfOrElseIfStatement));
-      
-      if (statementSyntaxWrapper.IsElseClause())
-        return BuildNewElseClauseRoot(oldRoot, syntaxNodes, statementSyntaxWrapper);
+      var tempElseClause = syntaxNodes.Last();        
+      syntaxNodes.RemoveAt(syntaxNodes.Count - 1);
 
-      throw new InvalidOperationException(
-        $"StatementSyntaxWrapper did not hold an else clause or if statement, type of item held was '{statementSyntaxWrapper.IfOrElseIfStatement.GetType()}'");
-    }
-
-    private static SyntaxNode BuildNewElseClauseRoot (SyntaxNode oldRoot,
-      List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes, IfAndElseIfStatementSyntaxWrapper statementSyntaxWrapper)
-    {
-      var tempElseClause = syntaxNodes.Last();
-      while (syntaxNodes.Count > 1)
+      while (syntaxNodes.Count > 0)
       {
-        syntaxNodes.RemoveAt(syntaxNodes.Count - 1);
+        if (tempElseClause.IfOrElseIfStatement.IsKind(SyntaxKind.IfStatement))
+        {
+          break;
+        }
         var tempParentElseClause = syntaxNodes.Last();
 
         tempParentElseClause.WithElseClause((ElseClauseSyntax) tempElseClause.IfOrElseIfStatement);
         tempElseClause = tempParentElseClause;
+        syntaxNodes.RemoveAt(syntaxNodes.Count - 1);
+
       }
 
-      return oldRoot.ReplaceNode(statementSyntaxWrapper.IfOrElseIfStatement, tempElseClause.IfOrElseIfStatement);
+      syntaxNodes.Add(tempElseClause);
+      if (syntaxNodes.Count == 1)
+      {
+        return oldRoot.ReplaceNode(oldNode.IfOrElseIfStatement, syntaxNodes.First().IfOrElseIfStatement);
+      }
+      return oldRoot.ReplaceNode(oldNode.IfOrElseIfStatement,
+          syntaxNodes.Select(s => s.IfOrElseIfStatement));
     }
 
 
@@ -140,6 +149,16 @@ namespace Infrastructure.Styles.Analyzer
 
       blueprint.WithCondition(expression);
       syntaxNodes.Add(blueprint.Copy());
+    }
+
+    private static void ReintroduceParentElseClauses (List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes)
+    {
+      foreach (var (syntaxNode, index) in syntaxNodes.Select((syntaxNode, i) => (syntaxNode, i)))
+      {
+        if(index == 0)
+          continue;
+        syntaxNode.ReintroduceParentElseClause();
+      }
     }
 
     private static SyntaxNode FindIllegalParentStatement (SyntaxNode node)
