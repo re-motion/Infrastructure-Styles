@@ -132,5 +132,79 @@ namespace N
 }";
         RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
     }
+    
+    [Test]
+    public void CodeFix_SimpleOrPatterConditionWithReturnStatement_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if(a is ↓1 or 3)
+                return;
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if(a is 1)
+                return;
+            if(a is 3)
+                return;
+        }
+    }
+}";
+        RoslynAssert.CodeFix(Analyzer, CodeFixProvider, before, after);
+    }
+    
+    [Test]
+    public void CodeFix_ComplexOrPatterConditionWithReturnStatement_CreatesProperIFStatements ()
+    {
+        var before = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if(a is ↓1 or > 3 and > 4 or 2)
+                return;
+        }
+    }
+}";
+        var after = @"
+namespace N
+{
+    class C
+    {
+
+        private void Main()
+        {
+            int a = 0;
+            if(a is 1)
+                return;
+            if(a is > 3 and > 4)
+                return;
+            if(a is 2)
+                return;
+        }
+    }
+}";
+        RoslynAssert.FixAll(Analyzer, CodeFixProvider, before, after);
+    }
   }
 }

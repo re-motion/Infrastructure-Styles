@@ -66,6 +66,8 @@ namespace Infrastructure.Styles.Analyzer
     {
       var illegalExpression = syntaxRoot.FindNode(diagnosticSpan);
 
+      illegalExpression = FindIllegalParentStatement(illegalExpression);
+      
       if (!SimpleIfStatementAnalyzer.IsInsideIfStatement(illegalExpression, out var ifStatement))
         return syntaxRoot;
 
@@ -77,7 +79,7 @@ namespace Infrastructure.Styles.Analyzer
       var syntaxNodes = new List<IfAndElseIfStatementSyntaxWrapper>();
       
       FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, syntaxWrapper.Copy(),
-        (ExpressionSyntax) illegalExpression);
+        illegalExpression);
 
       return BuildNewRoot(syntaxRoot, syntaxWrapper, syntaxNodes);
     }
@@ -126,12 +128,11 @@ namespace Infrastructure.Styles.Analyzer
 
     private static void FillSyntaxNodeListWithProperStatementsFromOrExpression (
       List<IfAndElseIfStatementSyntaxWrapper> syntaxNodes, IfAndElseIfStatementSyntaxWrapper blueprint,
-      ExpressionSyntax expression)
+      SyntaxNode expression)
     {
       if (SimpleIfStatementAnalyzer.IsIllegalExpression(expression, out var illegalExpression))
       {
         var splitExpression = new SplitExpression(illegalExpression!);
-        splitExpression.RemoveRedundantTrivia();
         FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, blueprint, splitExpression.Left);
         FillSyntaxNodeListWithProperStatementsFromOrExpression(syntaxNodes, blueprint, splitExpression.Right);
         return;
@@ -139,6 +140,23 @@ namespace Infrastructure.Styles.Analyzer
 
       blueprint.WithCondition(expression);
       syntaxNodes.Add(blueprint.Copy());
+    }
+
+    private static SyntaxNode FindIllegalParentStatement (SyntaxNode node)
+    {
+      if(node.Parent.IsKind(SyntaxKind.IfStatement))
+      {
+        return node;
+      }
+      if (node.Parent.IsKind(SyntaxKind.IsPatternExpression))
+      {
+        return node;
+      }
+
+      if (node.Parent == null)
+        return node;
+      
+      return FindIllegalParentStatement(node.Parent);
     }
   }
 }

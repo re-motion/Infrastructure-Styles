@@ -33,6 +33,11 @@ namespace Infrastructure.Styles.Analyzer
     
     public static bool IsInsideIfStatement (SyntaxNode node, out IfStatementSyntax? ifParent)
     {
+      if (node.IsKind(SyntaxKind.OrPattern))
+      {
+        return IsInsideIfStatement(node.Parent!, out ifParent);
+      }
+      
       if (node.Parent == null)
       {
         ifParent = null;
@@ -44,7 +49,7 @@ namespace Infrastructure.Styles.Analyzer
       if (ifParent != null)
         return true;
 
-      if (parent.IsKind(SyntaxKind.ParenthesizedExpression))
+      if (parent.IsKind(SyntaxKind.ParenthesizedExpression) || parent.IsKind(SyntaxKind.IsPatternExpression))
       {
         ifParent = parent.Parent as IfStatementSyntax;
         if (ifParent != null)
@@ -53,7 +58,7 @@ namespace Infrastructure.Styles.Analyzer
       return false;
     }
 
-    public static bool IsIllegalExpression (SyntaxNode expression, out ExpressionSyntax? illegalExpression)
+    public static bool IsIllegalExpression (SyntaxNode expression, out SyntaxNode? illegalExpression)
     {
       if (expression.IsKind(SyntaxKind.ParenthesizedExpression))
       {
@@ -63,7 +68,7 @@ namespace Infrastructure.Styles.Analyzer
 
       if (expression.IsKind(SyntaxKind.LogicalOrExpression) || expression.IsKind(SyntaxKind.OrPattern))
       {
-        illegalExpression = expression as ExpressionSyntax;
+        illegalExpression = expression;
         return true;
       }
 

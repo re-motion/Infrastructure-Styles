@@ -38,8 +38,9 @@ namespace Infrastructure.Styles.Analyzer
       return new IfAndElseIfStatementSyntaxWrapper(IfOrElseIfStatement);
     }
     
-    public void WithCondition (ExpressionSyntax expression)
+    public void WithCondition (SyntaxNode node)
     {
+      var expression = (node as ExpressionSyntax)!;
       if (IsIfStatement())
       {
         var temp = IfOrElseIfStatement as IfStatementSyntax;
